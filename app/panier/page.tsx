@@ -127,7 +127,7 @@ export default function CartPage() {
               </div>
               <div className="mt-6">
                 <Link href="/" className="btn-primary">
-                  Retour à l'Accueil
+                  Retour à l&apos;Accueil
                 </Link>
               </div>
             </div>
@@ -260,7 +260,7 @@ export default function CartPage() {
                 </div>
 
                 <p className="text-sm text-gray-600 mb-4">
-                  * Livraison gratuite dès 50€ d'achat
+                  * Livraison gratuite dès 50€ d&apos;achat
                 </p>
               </div>
             </div>
@@ -415,7 +415,7 @@ export default function CartPage() {
                 <h3 className="font-semibold text-gray-900 mb-2">Informations importantes :</h3>
                 <ul className="text-sm text-gray-600 space-y-1">
                   <li>• Aucun paiement en ligne - confirmation manuelle par la fondatrice</li>
-                  <li>• Livraison gratuite dès 50€ d'achat</li>
+                  <li>• Livraison gratuite dès 50€ d&apos;achat</li>
                   <li>• Délai de livraison : 3-5 jours ouvrés</li>
                   <li>• Vous recevrez un email de confirmation après validation</li>
                 </ul>
@@ -451,7 +451,7 @@ export default function CartPage() {
       <section className="py-16 bg-gradient-to-r from-primary-pink to-rose-pink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="font-elegant text-3xl md:text-4xl font-bold text-white mb-6">
-            Besoin d'Aide ?
+            Besoin d&apos;Aide ?
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
             Notre équipe est là pour vous accompagner dans votre commande.

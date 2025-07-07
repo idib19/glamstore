@@ -1,147 +1,85 @@
 import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
-import { Clock, Star, Calendar, Sparkles, Heart, Users } from 'lucide-react';
+import { Star, Calendar, Sparkles, Heart, Crown, Scissors, CheckCircle, MapPin, MessageCircle } from 'lucide-react';
 
 export default function ServicesPage() {
-  const serviceCategories = [
+  const services = [
     {
-      id: 'soins-visage',
-      title: 'Soins du Visage',
-      icon: Heart,
+      id: 'manucure-pedicure',
+      title: '💅 Manucure & Pédicure – Pose d&apos;ongles',
+      subtitle: 'Des mains et des pieds impeccables pour toutes les occasions.',
+      icon: <Heart className="h-8 w-8 text-primary-pink" />,
       services: [
         {
-          name: 'Soin Hydratant',
-          description: 'Hydratation profonde pour tous types de peau',
-          duration: '45 min',
-          price: 45,
-          popular: false
+          name: 'Pose d&apos;ongles (gel ou capsules)',
+          price: 'à partir de 45 $',
+          description: 'Pose professionnelle avec gel ou capsules'
         },
         {
-          name: 'Soin Anti-âge',
-          description: 'Soin complet pour préserver la jeunesse de votre peau',
-          duration: '60 min',
-          price: 65,
-          popular: true
+          name: 'Gel, Pédicure simple ou pose',
+          price: 'à partir de 25 $',
+          description: 'Soin complet des pieds avec pose'
+        }
+      ],
+      note: '✨ Designs et options personnalisées disponibles sur demande.'
+    },
+    {
+      id: 'pose-perruque',
+      title: '👑 Pose de perruque',
+      subtitle: 'Une pose propre, naturelle et durable.',
+      icon: <Crown className="h-8 w-8 text-primary-pink" />,
+      services: [
+        {
+          name: 'Pose perruque sans colle',
+          price: '30 $',
+          description: 'Pose sécurisée sans adhésif'
         },
         {
-          name: 'Soin Purifiant',
-          description: 'Nettoyage en profondeur pour peaux mixtes à grasses',
-          duration: '50 min',
-          price: 55,
-          popular: false
+          name: 'Pose perruque avec colle (colle fournie)',
+          price: '45 $',
+          description: 'Pose durable avec adhésif professionnel'
         },
         {
-          name: 'Soin Détente',
-          description: 'Moment de relaxation avec soin personnalisé',
-          duration: '75 min',
-          price: 75,
-          popular: false
+          name: 'Pose frontale lace wig avec baby hair',
+          price: '55 $',
+          description: 'Pose sophistiquée avec finitions naturelles'
         }
       ]
     },
     {
-      id: 'maquillage',
-      title: 'Maquillage',
-      icon: Sparkles,
+      id: 'coiffure-perruque',
+      title: '✂️ Coiffure de perruque',
+      subtitle: 'Fais styliser ta perruque selon ton style !',
+      icon: <Scissors className="h-8 w-8 text-primary-pink" />,
       services: [
         {
-          name: 'Maquillage Jour',
-          description: 'Maquillage naturel et lumineux pour la journée',
-          duration: '30 min',
-          price: 35,
-          popular: false
+          name: 'Lissage ou bouclage simple',
+          price: '30 $',
+          description: 'Stylisation basique selon vos préférences'
         },
         {
-          name: 'Maquillage Soirée',
-          description: 'Maquillage sophistiqué pour vos événements',
-          duration: '45 min',
-          price: 50,
-          popular: true
-        },
-        {
-          name: 'Maquillage Mariée',
-          description: 'Maquillage de rêve pour votre jour J',
-          duration: '90 min',
-          price: 120,
-          popular: false
-        },
-        {
-          name: 'Cours de Maquillage',
-          description: 'Apprenez les techniques de maquillage personnalisées',
-          duration: '60 min',
-          price: 80,
-          popular: false
+          name: 'Coiffure personnalisée (avec coupe ou stylisation spécifique)',
+          price: 'à partir de 40 $',
+          description: 'Coiffure sur mesure avec coupe ou style spécial'
         }
       ]
     },
     {
-      id: 'manucure',
-      title: 'Manucure & Pedicure',
-      icon: Users,
+      id: 'soins-perruque',
+      title: '✨ Soins de perruque (Remise à neuf)',
+      subtitle: 'Restaure l&apos;éclat de ta perruque préférée !',
+      icon: <Sparkles className="h-8 w-8 text-primary-pink" />,
       services: [
         {
-          name: 'Manucure Classique',
-          description: 'Soin complet des mains avec vernis',
-          duration: '30 min',
-          price: 25,
-          popular: false
+          name: 'Shampoing + revitalisant + séchage',
+          price: '25 $',
+          description: 'Nettoyage et soin de base'
         },
         {
-          name: 'Manucure avec Gel',
-          description: 'Manucure longue durée avec gel coloré',
-          duration: '45 min',
-          price: 35,
-          popular: true
-        },
-        {
-          name: 'Pedicure Relaxante',
-          description: 'Soin complet des pieds avec massage',
-          duration: '45 min',
-          price: 40,
-          popular: false
-        },
-        {
-          name: 'Soin Complet Mains & Pieds',
-          description: 'Package complet pour un soin total',
-          duration: '75 min',
-          price: 60,
-          popular: false
-        }
-      ]
-    },
-    {
-      id: 'massages',
-      title: 'Massages & Détente',
-      icon: Heart,
-      services: [
-        {
-          name: 'Massage Relaxant',
-          description: 'Massage doux pour détendre vos muscles',
-          duration: '45 min',
-          price: 55,
-          popular: false
-        },
-        {
-          name: 'Massage Décontractant',
-          description: 'Massage en profondeur pour soulager les tensions',
-          duration: '60 min',
-          price: 70,
-          popular: true
-        },
-        {
-          name: 'Massage du Visage',
-          description: 'Massage facial pour détendre et tonifier',
-          duration: '30 min',
-          price: 40,
-          popular: false
-        },
-        {
-          name: 'Massage Complet',
-          description: 'Massage corps complet pour une détente totale',
-          duration: '90 min',
-          price: 95,
-          popular: false
+          name: 'Remise à neuf complète (soin profond, coiffage)',
+          price: 'à partir de 50 $',
+          description: 'Soin complet avec traitement en profondeur'
         }
       ]
     }
@@ -149,19 +87,19 @@ export default function ServicesPage() {
 
   const benefits = [
     {
-      icon: Star,
+      icon: <Star className="h-8 w-8 text-primary-pink" />,
+      title: 'Expérience Personnalisée',
+      description: 'Chaque service est adapté à tes besoins spécifiques'
+    },
+    {
+      icon: <Heart className="h-8 w-8 text-primary-pink" />,
+      title: 'Ambiance Chaleureuse',
+      description: 'Un environnement professionnel et 100% glam'
+    },
+    {
+      icon: <Crown className="h-8 w-8 text-primary-pink" />,
       title: 'Qualité Premium',
-      description: 'Produits haut de gamme et techniques professionnelles'
-    },
-    {
-      icon: Clock,
-      title: 'Flexibilité',
-      description: 'Créneaux disponibles du lundi au samedi'
-    },
-    {
-      icon: Users,
-      title: 'Personnalisation',
-      description: 'Soins adaptés à vos besoins spécifiques'
+      description: 'Produits et techniques professionnelles'
     }
   ];
 
@@ -174,25 +112,36 @@ export default function ServicesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="font-elegant text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Nos{' '}
+              ✨ Nos{' '}
               <span className="text-primary-pink">Services</span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Découvrez notre gamme complète de services de beauté et bien-être. 
-              Chaque soin est personnalisé pour répondre à vos besoins.
+            <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+              &quot;La beauté, à ton image&quot;
+            </p>
+            <p className="text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed mt-4">
+              Chez Queen&apos;s Glam, chaque service est conçu pour t&apos;offrir un moment de soin, de style et de confiance. 
+              Profite d&apos;une expérience personnalisée dans une ambiance chaleureuse, professionnelle et 100 % glam.
             </p>
           </div>
+        </div>
+        
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 text-primary-pink opacity-20">
+          <Crown className="h-12 w-12" />
+        </div>
+        <div className="absolute bottom-10 right-10 text-primary-pink opacity-20">
+          <Sparkles className="h-12 w-12" />
         </div>
       </section>
 
       {/* Benefits Section */}
-      <section className="py-12 bg-white">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {benefits.map((benefit, index) => (
-              <div key={index} className="text-center p-6">
+              <div key={index} className="text-center p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-all">
                 <div className="bg-soft-pink rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="h-8 w-8 text-primary-pink" />
+                  {benefit.icon}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   {benefit.title}
@@ -209,165 +158,108 @@ export default function ServicesPage() {
       {/* Services Section */}
       <section className="py-16 bg-pale-pink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {serviceCategories.map((category, categoryIndex) => (
-            <div key={category.id} id={category.id} className="mb-16 last:mb-0">
-              <div className="text-center mb-12">
-                <div className="bg-primary-pink rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                  <category.icon className="h-10 w-10 text-white" />
-                </div>
-                <h2 className="font-elegant text-3xl font-bold text-gray-900 mb-4">
-                  {category.title}
-                </h2>
-                <p className="text-gray-600 max-w-2xl mx-auto">
-                  Découvrez nos services spécialisés dans cette catégorie
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {category.services.map((service, serviceIndex) => (
-                  <div 
-                    key={serviceIndex} 
-                    className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all ${
-                      service.popular ? 'ring-2 ring-primary-pink' : ''
-                    }`}
-                  >
-                    {service.popular && (
-                      <div className="bg-primary-pink text-white text-center py-2 text-sm font-medium">
-                        Populaire
-                      </div>
-                    )}
-                    <div className="p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        {service.name}
-                      </h3>
-                      <p className="text-gray-600 text-sm mb-4">
-                        {service.description}
+          <div className="space-y-12">
+            {services.map((service) => (
+              <div key={service.id} className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="bg-gradient-to-r from-soft-pink to-light-pink p-8">
+                  <div className="flex items-center mb-4">
+                    <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center mr-6">
+                      {service.icon}
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                        {service.title}
+                      </h2>
+                      <p className="text-gray-700 text-lg">
+                        {service.subtitle}
                       </p>
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center text-gray-500 text-sm">
-                          <Clock className="h-4 w-4 mr-1" />
-                          {service.duration}
-                        </div>
-                        <div className="text-primary-pink font-bold text-lg">
-                          {service.price}€
-                        </div>
-                      </div>
-                      <Link
-                        href={`/rendez-vous?service=${encodeURIComponent(service.name)}`}
-                        className="btn-primary w-full text-center text-sm"
-                      >
-                        <Calendar className="h-4 w-4 mr-2 inline" />
-                        Réserver
-                      </Link>
                     </div>
                   </div>
-                ))}
+                </div>
+                
+                <div className="p-8">
+                  <div className="space-y-6">
+                    {service.services.map((item, itemIndex) => (
+                      <div key={itemIndex} className="border-b border-gray-100 pb-6 last:border-b-0">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {item.name}
+                          </h3>
+                          <span className="text-xl font-bold text-primary-pink">
+                            {item.price}
+                          </span>
+                        </div>
+                        <p className="text-gray-600">
+                          {item.description}
+                        </p>
+                      </div>
+                    ))}
+                    
+                    {service.note && (
+                      <div className="bg-soft-pink rounded-lg p-4 mt-6">
+                        <p className="text-gray-700 font-medium">
+                          {service.note}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Packages Section */}
+      {/* Information Section */}
       <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="font-elegant text-3xl font-bold text-gray-900 mb-4">
-              Nos Forfaits
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Profitez de nos forfaits avantageux pour optimiser votre routine beauté
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-pale-pink rounded-lg p-8 text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Forfait Découverte
-              </h3>
-              <div className="text-4xl font-bold text-primary-pink mb-6">
-                120€
-              </div>
-              <ul className="text-left space-y-3 mb-8">
-                <li className="flex items-center">
-                  <Star className="h-4 w-4 text-primary-pink mr-2" />
-                  Soin du visage + Manucure
-                </li>
-                <li className="flex items-center">
-                  <Star className="h-4 w-4 text-primary-pink mr-2" />
-                  Maquillage jour
-                </li>
-                <li className="flex items-center">
-                  <Star className="h-4 w-4 text-primary-pink mr-2" />
-                  Consultation personnalisée
-                </li>
-              </ul>
-              <Link href="/rendez-vous?package=decouverte" className="btn-primary w-full">
-                Choisir ce forfait
-              </Link>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-br from-soft-pink to-light-pink rounded-2xl p-8 shadow-lg">
+            <div className="text-center mb-8">
+              <h2 className="font-elegant text-3xl font-bold text-gray-900 mb-6">
+                ✨ Informations Importantes
+              </h2>
             </div>
             
-            <div className="bg-primary-pink rounded-lg p-8 text-center text-white">
-              <div className="bg-white text-primary-pink px-4 py-1 rounded-full text-sm font-medium inline-block mb-4">
-                Le Plus Populaire
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="flex items-start space-x-4">
+                <div className="bg-white rounded-full w-12 h-12 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="h-6 w-6 text-primary-pink" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Lieu</h3>
+                  <p className="text-gray-700">Gatineau, QC</p>
+                </div>
               </div>
-              <h3 className="text-2xl font-bold mb-4">
-                Forfait Bien-être
-              </h3>
-              <div className="text-4xl font-bold mb-6">
-                180€
+              
+              <div className="flex items-start space-x-4">
+                <div className="bg-white rounded-full w-12 h-12 flex items-center justify-center flex-shrink-0">
+                  <Calendar className="h-6 w-6 text-primary-pink" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Réservation</h3>
+                  <p className="text-gray-700">Réservation obligatoire. Les rendez-vous sont confirmés par message ou courriel.</p>
+                </div>
               </div>
-              <ul className="text-left space-y-3 mb-8">
-                <li className="flex items-center">
-                  <Star className="h-4 w-4 text-white mr-2" />
-                  Soin anti-âge + Massage
-                </li>
-                <li className="flex items-center">
-                  <Star className="h-4 w-4 text-white mr-2" />
-                  Manucure avec gel
-                </li>
-                <li className="flex items-center">
-                  <Star className="h-4 w-4 text-white mr-2" />
-                  Maquillage soirée
-                </li>
-                <li className="flex items-center">
-                  <Star className="h-4 w-4 text-white mr-2" />
-                  Produits offerts
-                </li>
-              </ul>
-              <Link href="/rendez-vous?package=bien-etre" className="bg-white text-primary-pink px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all w-full block">
-                Choisir ce forfait
-              </Link>
-            </div>
-            
-            <div className="bg-pale-pink rounded-lg p-8 text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Forfait Premium
-              </h3>
-              <div className="text-4xl font-bold text-primary-pink mb-6">
-                280€
+              
+              <div className="flex items-start space-x-4">
+                <div className="bg-white rounded-full w-12 h-12 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="h-6 w-6 text-primary-pink" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Acompte</h3>
+                  <p className="text-gray-700">Un acompte peut être requis pour certains services.</p>
+                </div>
               </div>
-              <ul className="text-left space-y-3 mb-8">
-                <li className="flex items-center">
-                  <Star className="h-4 w-4 text-primary-pink mr-2" />
-                  Soin complet + Massage
-                </li>
-                <li className="flex items-center">
-                  <Star className="h-4 w-4 text-primary-pink mr-2" />
-                  Maquillage mariée
-                </li>
-                <li className="flex items-center">
-                  <Star className="h-4 w-4 text-primary-pink mr-2" />
-                  Cours de maquillage
-                </li>
-                <li className="flex items-center">
-                  <Star className="h-4 w-4 text-primary-pink mr-2" />
-                  Kit produits complet
-                </li>
-              </ul>
-              <Link href="/rendez-vous?package=premium" className="btn-primary w-full">
-                Choisir ce forfait
-              </Link>
+              
+              <div className="flex items-start space-x-4">
+                <div className="bg-white rounded-full w-12 h-12 flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="h-6 w-6 text-primary-pink" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Contact</h3>
+                  <p className="text-gray-700">N&apos;hésite pas à nous contacter pour toute question ou demande spéciale.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -375,16 +267,16 @@ export default function ServicesPage() {
 
       {/* CTA Section */}
       <section className="py-16 bg-gradient-to-r from-primary-pink to-rose-pink">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="font-elegant text-3xl md:text-4xl font-bold text-white mb-6">
-            Prêt(e) à Prendre Soin de Vous ?
+            ✨ Prête pour ton Moment Glam ?
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Réservez votre créneau dès maintenant et offrez-vous un moment de détente et de beauté.
+            Réserve ton rendez-vous et offre-toi un moment rien que pour toi.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/rendez-vous" className="bg-white text-primary-pink px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-all">
-              Prendre Rendez-vous
+              Réserver Maintenant
             </Link>
             <Link href="/contact" className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-primary-pink transition-all">
               Nous Contacter

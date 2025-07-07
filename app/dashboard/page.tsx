@@ -14,8 +14,6 @@ import {
   Trash2, 
   Eye,
   Package,
-  Clock,
-  DollarSign,
   TrendingUp
 } from 'lucide-react';
 

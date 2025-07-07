@@ -16,6 +16,7 @@ const Footer = () => {
     { name: 'Services', href: '/services' },
     { name: 'Produits', href: '/produits' },
     { name: 'Avis clients', href: '/avis' },
+    { name: 'FAQ', href: '/faq' },
     { name: 'Contact', href: '/contact' },
   ];
 
@@ -147,7 +148,7 @@ const Footer = () => {
                 Politique de confidentialité
               </Link>
               <Link href="/conditions-utilisation" className="text-gray-400 hover:text-primary-pink text-sm">
-                Conditions d'utilisation
+                Conditions d&apos;utilisation
               </Link>
             </div>
           </div>

@@ -4,133 +4,102 @@ import { useState } from 'react';
 import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
-import { ShoppingBag, Star, Heart, Filter, Search, Plus, Minus } from 'lucide-react';
+import { ShoppingBag, Star, Heart, Crown, Sparkles, Palette, CheckCircle } from 'lucide-react';
 
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+
 
   const categories = [
     { id: 'all', name: 'Tous les produits' },
-    { id: 'soins-visage', name: 'Soins du visage' },
-    { id: 'maquillage', name: 'Maquillage' },
-    { id: 'corps', name: 'Soins du corps' },
-    { id: 'cheveux', name: 'Soins des cheveux' },
-    { id: 'accessoires', name: 'Accessoires' }
+    { id: 'lip-gloss', name: 'Lip Gloss' },
+    { id: 'masques-levres', name: 'Masques à Lèvres' },
+    { id: 'perruques', name: 'Perruques Naturelles' }
   ];
 
   const products = [
     {
       id: 1,
-      name: 'Crème Hydratante Intense',
-      category: 'soins-visage',
-      description: 'Hydratation 24h pour tous types de peau',
-      price: 28.50,
-      originalPrice: 35.00,
-      rating: 4.8,
-      reviews: 124,
-      image: '/api/placeholder/300/300',
-      inStock: true,
-      popular: true
-    },
-    {
-      id: 2,
-      name: 'Sérum Anti-âge',
-      category: 'soins-visage',
-      description: 'Sérum concentré pour préserver la jeunesse',
-      price: 45.00,
-      originalPrice: 55.00,
+      name: 'Lip Gloss Ultra Hydratant',
+      category: 'lip-gloss',
+      description: 'Fais briller tes lèvres avec notre gloss signature ✨',
+      longDescription: 'Vegan et sans cruauté animale, il hydrate intensément tout en laissant un fini glowy et soyeux. Disponible en 10 teintes sublimes pour tous les tons de peau.',
+      price: 12.99,
+      currency: 'CAD',
       rating: 4.9,
-      reviews: 89,
-      image: '/api/placeholder/300/300',
-      inStock: true,
-      popular: false
-    },
-    {
-      id: 3,
-      name: 'Fond de Teint Lumineux',
-      category: 'maquillage',
-      description: 'Fond de teint longue tenue et couvrant',
-      price: 32.00,
-      originalPrice: 32.00,
-      rating: 4.7,
       reviews: 156,
       image: '/api/placeholder/300/300',
       inStock: true,
-      popular: true
+      popular: true,
+      features: [
+        'Texture non collante',
+        'Parfum léger', 
+        'Format pratique'
+      ]
     },
     {
-      id: 4,
-      name: 'Palette Ombre à Paupières',
-      category: 'maquillage',
-      description: '18 couleurs mattes et brillantes',
-      price: 38.50,
-      originalPrice: 45.00,
-      rating: 4.6,
+      id: 2,
+      name: 'Lip Gloss Fini Matte',
+      category: 'lip-gloss',
+      description: 'L&apos;élégance du matte, sans compromis sur le confort.',
+      longDescription: 'Notre gamme matte offre une couleur intense et une tenue longue durée, sans dessécher les lèvres. Disponible en 2 teintes élégantes.',
+      price: 12.99,
+      currency: 'CAD',
+      rating: 4.8,
+      reviews: 89,
+      image: '/api/placeholder/300/300',
+      inStock: true,
+      popular: false,
+      features: [
+        'Fini matte élégant',
+        'Tenue longue durée',
+        'Confort optimal'
+      ]
+    },
+    {
+      id: 3,
+      name: 'Masque à Lèvres',
+      category: 'masques-levres',
+      description: 'Ton rituel self-care du soir commence ici.',
+      longDescription: 'Ce masque à lèvres riche et fondant est un soin de nuit pour des lèvres réparées et repulpées au réveil. Disponible en 3 saveurs gourmandes : fraise, bonbon et vanille.',
+      price: 12.99,
+      currency: 'CAD',
+      rating: 4.9,
       reviews: 203,
       image: '/api/placeholder/300/300',
       inStock: true,
-      popular: false
+      popular: true,
+      features: [
+        'Boost d&apos;hydratation',
+        'Réduction des ridules',
+        'Lèvres plus lisses, plus douces',
+        'Nourrit et repulpe'
+      ]
     },
     {
-      id: 5,
-      name: 'Gel Douche Nourrissant',
-      category: 'corps',
-      description: 'Gel douche enrichi en huiles essentielles',
-      price: 18.00,
-      originalPrice: 22.00,
-      rating: 4.5,
-      reviews: 78,
-      image: '/api/placeholder/300/300',
-      inStock: true,
-      popular: false
-    },
-    {
-      id: 6,
-      name: 'Huile de Massage Relaxante',
-      category: 'corps',
-      description: 'Huile de massage aux essences naturelles',
-      price: 25.00,
-      originalPrice: 25.00,
-      rating: 4.8,
-      reviews: 92,
-      image: '/api/placeholder/300/300',
-      inStock: false,
-      popular: false
-    },
-    {
-      id: 7,
-      name: 'Shampoing Hydratant',
-      category: 'cheveux',
-      description: 'Shampoing doux pour cheveux secs',
-      price: 22.50,
-      originalPrice: 28.00,
-      rating: 4.4,
+      id: 4,
+      name: 'Perruques Naturelles Premium',
+      category: 'perruques',
+      description: 'Révèle ton style avec nos perruques 100 % cheveux naturels.',
+      longDescription: 'Confort, élégance et durabilité réunis dans des modèles pensés pour t&apos;accompagner en toute confiance. Disponibles en plusieurs textures : lisse, ondulée, bouclée, kinky, afro etc. Options : Lace frontale, sans colle, avec colle, personnalisables à la demande.',
+      price: null,
+      currency: 'CAD',
+      rating: 5.0,
       reviews: 67,
       image: '/api/placeholder/300/300',
       inStock: true,
-      popular: false
-    },
-    {
-      id: 8,
-      name: 'Pinceaux de Maquillage',
-      category: 'accessoires',
-      description: 'Set de 5 pinceaux professionnels',
-      price: 35.00,
-      originalPrice: 42.00,
-      rating: 4.7,
-      reviews: 134,
-      image: '/api/placeholder/300/300',
-      inStock: true,
-      popular: true
+      popular: true,
+      features: [
+        'Faciles à coiffer',
+        'Finition naturelle',
+        'Effet "flawless"'
+      ]
     }
   ];
 
   const filteredProducts = products.filter(product => {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return matchesCategory;
   });
 
   const [cart, setCart] = useState<{[key: number]: number}>({});
@@ -166,14 +135,21 @@ export default function ProductsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="font-elegant text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Nos{' '}
+              ✨ Nos{' '}
               <span className="text-primary-pink">Produits</span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Découvrez notre sélection de produits de beauté de qualité, 
-              soigneusement choisis pour prendre soin de vous.
+            <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+              Découvre nos essentiels signés Queen&apos;s Glam, conçus pour révéler ta beauté naturelle et ton éclat.
             </p>
           </div>
+        </div>
+        
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 text-primary-pink opacity-20">
+          <Crown className="h-12 w-12" />
+        </div>
+        <div className="absolute bottom-10 right-10 text-primary-pink opacity-20">
+          <Sparkles className="h-12 w-12" />
         </div>
       </section>
 
@@ -181,25 +157,13 @@ export default function ProductsPage() {
       <section className="py-8 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Rechercher un produit..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-              />
-            </div>
-
             {/* Categories Filter */}
             <div className="flex flex-wrap gap-2">
               {categories.map((category) => (
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     selectedCategory === category.id
                       ? 'bg-primary-pink text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -211,175 +175,171 @@ export default function ProductsPage() {
             </div>
 
             {/* Cart Summary */}
-            <div className="flex items-center gap-4">
-              <Link href="/panier" className="relative">
-                <ShoppingBag className="h-6 w-6 text-gray-700 hover:text-primary-pink transition-all" />
-                {cartItemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-primary-pink text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartItemCount}
-                  </span>
-                )}
-              </Link>
-              <span className="text-sm text-gray-600">
-                {cartItemCount} article{cartItemCount !== 1 ? 's' : ''}
-              </span>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 bg-soft-pink px-4 py-2 rounded-lg">
+                <ShoppingBag className="h-5 w-5 text-primary-pink" />
+                <span className="text-gray-700 font-medium">
+                  {cartItemCount} article{cartItemCount !== 1 ? 's' : ''}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Products Grid */}
+      {/* Products Section */}
       <section className="py-16 bg-pale-pink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {filteredProducts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600 text-lg">
-                Aucun produit trouvé pour votre recherche.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+            {filteredProducts.map((product) => (
+              <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all">
+                {/* Product Image */}
+                <div className="h-64 bg-gradient-to-br from-soft-pink to-light-pink flex items-center justify-center relative">
                   {product.popular && (
-                    <div className="bg-primary-pink text-white text-center py-2 text-sm font-medium">
-                      Populaire
+                    <div className="absolute top-4 left-4 bg-primary-pink text-white px-3 py-1 rounded-full text-sm font-medium">
+                      ✨ Populaire
                     </div>
                   )}
-                  {!product.inStock && (
-                    <div className="bg-gray-500 text-white text-center py-2 text-sm font-medium">
-                      Rupture de stock
-                    </div>
-                  )}
-                  
-                  <div className="h-48 bg-gradient-to-br from-soft-pink to-light-pink flex items-center justify-center">
-                    <Heart className="h-16 w-16 text-primary-pink" />
+                  <div className="text-center">
+                    <Palette className="h-16 w-16 text-primary-pink mx-auto mb-2" />
+                    <p className="text-gray-600 text-sm">Image du produit</p>
                   </div>
-                  
-                  <div className="p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {product.name}
+                </div>
+
+                {/* Product Info */}
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-xl font-bold text-gray-900">
+                      {product.name} – Queen&apos;s Glam
                     </h3>
-                    <p className="text-gray-600 text-sm mb-3">
-                      {product.description}
-                    </p>
-                    
-                    {/* Rating */}
-                    <div className="flex items-center mb-3">
-                      <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < Math.floor(product.rating)
-                                ? 'text-yellow-400 fill-current'
-                                : 'text-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm text-gray-500 ml-2">
-                        ({product.reviews})
-                      </span>
+                    <div className="flex items-center space-x-1">
+                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                      <span className="text-sm text-gray-600">{product.rating}</span>
                     </div>
-                    
-                    {/* Price */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl font-bold text-primary-pink">
-                          {product.price.toFixed(2)}€
+                  </div>
+
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    {product.description}
+                  </p>
+
+                  <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                    {product.longDescription}
+                  </p>
+
+                  {/* Features */}
+                  <div className="mb-6">
+                    <div className="grid grid-cols-1 gap-2">
+                      {product.features.map((feature, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <CheckCircle className="h-4 w-4 text-primary-pink flex-shrink-0" />
+                          <span className="text-sm text-gray-600">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Price and Actions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      {product.price ? (
+                        <span className="text-2xl font-bold text-primary-pink">
+                          {product.price} $ {product.currency}
                         </span>
-                        {product.originalPrice > product.price && (
-                          <span className="text-sm text-gray-500 line-through">
-                            {product.originalPrice.toFixed(2)}€
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Add to Cart */}
-                    <div className="flex items-center gap-2">
-                      {cart[product.id] > 0 && (
-                        <>
-                          <button
-                            onClick={() => removeFromCart(product.id)}
-                            className="bg-gray-200 text-gray-700 p-2 rounded-lg hover:bg-gray-300 transition-all"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </button>
-                          <span className="text-lg font-semibold text-gray-900 min-w-[2rem] text-center">
-                            {cart[product.id]}
-                          </span>
-                        </>
+                      ) : (
+                        <span className="text-lg font-semibold text-gray-700">
+                          Prix sur demande
+                        </span>
                       )}
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      {cart[product.id] > 0 && (
+                        <button
+                          onClick={() => removeFromCart(product.id)}
+                          className="bg-gray-200 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-all"
+                        >
+                          -
+                        </button>
+                      )}
+                      
+                      {cart[product.id] > 0 && (
+                        <span className="text-gray-700 font-medium min-w-[20px] text-center">
+                          {cart[product.id]}
+                        </span>
+                      )}
+                      
                       <button
                         onClick={() => addToCart(product.id)}
-                        disabled={!product.inStock}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-medium transition-all ${
-                          product.inStock
-                            ? 'btn-primary'
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        }`}
+                        className="bg-primary-pink text-white px-4 py-2 rounded-lg font-medium hover:bg-dark-pink transition-all flex items-center space-x-2"
                       >
                         <ShoppingBag className="h-4 w-4" />
-                        {product.inStock ? 'Ajouter au panier' : 'Indisponible'}
+                        <span>Ajouter</span>
                       </button>
                     </div>
                   </div>
+
+                  {/* Reviews */}
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <p className="text-sm text-gray-500">
+                      {product.reviews} avis clients
+                    </p>
+                  </div>
                 </div>
-              ))}
+              </div>
+            ))}
+          </div>
+
+          {filteredProducts.length === 0 && (
+            <div className="text-center py-12">
+              <div className="bg-white rounded-2xl p-8 shadow-lg max-w-md mx-auto">
+                <Sparkles className="h-16 w-16 text-primary-pink mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Aucun produit trouvé
+                </h3>
+                <p className="text-gray-600">
+                  Essaie de modifier tes critères de recherche.
+                </p>
+              </div>
             </div>
           )}
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Product Benefits Section */}
       <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="font-elegant text-3xl font-bold text-gray-900 mb-4">
-              Pourquoi Choisir Nos Produits ?
+              ✨ Pourquoi Choisir Queen&apos;s Glam ?
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Nous sélectionnons avec soin chaque produit pour vous garantir qualité et efficacité.
+              Nos produits sont conçus avec amour pour révéler ta beauté naturelle.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center p-6">
               <div className="bg-soft-pink rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-primary-pink" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Qualité Premium
-              </h3>
-              <p className="text-gray-600">
-                Tous nos produits sont testés et approuvés par nos experts.
-              </p>
-            </div>
-            
-            <div className="text-center p-6">
-              <div className="bg-soft-pink rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <Heart className="h-8 w-8 text-primary-pink" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Naturel & Sûr
-              </h3>
-              <p className="text-gray-600">
-                Formulations respectueuses de votre peau et de l'environnement.
-              </p>
+              <h3 className="font-semibold text-gray-900 mb-2">Vegan & Cruelty-Free</h3>
+              <p className="text-sm text-gray-600">Produits respectueux de l&apos;environnement et des animaux</p>
             </div>
             
             <div className="text-center p-6">
               <div className="bg-soft-pink rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <ShoppingBag className="h-8 w-8 text-primary-pink" />
+                <Crown className="h-8 w-8 text-primary-pink" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Livraison Rapide
-              </h3>
-              <p className="text-gray-600">
-                Livraison gratuite dès 50€ d'achat en France métropolitaine.
-              </p>
+              <h3 className="font-semibold text-gray-900 mb-2">Qualité Premium</h3>
+              <p className="text-sm text-gray-600">Formules soigneusement élaborées pour des résultats exceptionnels</p>
+            </div>
+            
+            <div className="text-center p-6">
+              <div className="bg-soft-pink rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="h-8 w-8 text-primary-pink" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Effet Glam</h3>
+              <p className="text-sm text-gray-600">Révèle ton éclat naturel avec nos produits signature</p>
             </div>
           </div>
         </div>
@@ -387,19 +347,19 @@ export default function ProductsPage() {
 
       {/* CTA Section */}
       <section className="py-16 bg-gradient-to-r from-primary-pink to-rose-pink">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="font-elegant text-3xl md:text-4xl font-bold text-white mb-6">
-            Besoin de Conseils ?
+            ✨ Prête à Révéler Ton Éclat ?
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Notre équipe d'experts est là pour vous conseiller dans le choix de vos produits.
+            Découvre nos produits et laisse la magie Queen&apos;s Glam opérer.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/contact" className="bg-white text-primary-pink px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-all">
-              Nous Contacter
+              Commander Maintenant
             </Link>
-            <Link href="/panier" className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-primary-pink transition-all">
-              Voir le Panier
+            <Link href="/services" className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-primary-pink transition-all">
+              Nos Services
             </Link>
           </div>
         </div>

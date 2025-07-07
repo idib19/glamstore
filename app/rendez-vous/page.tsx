@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
-import { Calendar, Clock, User, Phone, Mail, CheckCircle, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, User, CheckCircle, ArrowRight, Crown, Sparkles, Heart, Scissors } from 'lucide-react';
 
 export default function AppointmentPage() {
   const [selectedService, setSelectedService] = useState('');
@@ -20,65 +20,37 @@ export default function AppointmentPage() {
 
   const services = [
     {
-      id: 'soin-hydratant',
-      name: 'Soin Hydratant',
-      duration: '45 min',
-      price: 45,
-      category: 'Soins du visage'
-    },
-    {
-      id: 'soin-anti-age',
-      name: 'Soin Anti-âge',
+      id: 'manucure-pedicure',
+      name: 'Manucure et pédicure (pose d&apos;ongles)',
+      icon: <Heart className="h-8 w-8 text-primary-pink" />,
       duration: '60 min',
-      price: 65,
-      category: 'Soins du visage'
+      description: 'Pose d&apos;ongles et soins complets pour mains et pieds'
     },
     {
-      id: 'maquillage-jour',
-      name: 'Maquillage Jour',
-      duration: '30 min',
-      price: 35,
-      category: 'Maquillage'
+      id: 'pose-perruque',
+      name: 'Pose de perruque',
+      icon: <Crown className="h-8 w-8 text-primary-pink" />,
+      duration: '90 min',
+      description: 'Pose de perruques pour un rendu impeccable'
     },
     {
-      id: 'maquillage-soiree',
-      name: 'Maquillage Soirée',
+      id: 'coiffure-perruque',
+      name: 'Coiffure de perruque',
+      icon: <Scissors className="h-8 w-8 text-primary-pink" />,
       duration: '45 min',
-      price: 50,
-      category: 'Maquillage'
+      description: 'Coiffure de perruques selon votre style'
     },
     {
-      id: 'manucure-classique',
-      name: 'Manucure Classique',
-      duration: '30 min',
-      price: 25,
-      category: 'Manucure'
-    },
-    {
-      id: 'manucure-gel',
-      name: 'Manucure avec Gel',
-      duration: '45 min',
-      price: 35,
-      category: 'Manucure'
-    },
-    {
-      id: 'massage-relaxant',
-      name: 'Massage Relaxant',
-      duration: '45 min',
-      price: 55,
-      category: 'Massage'
-    },
-    {
-      id: 'massage-decontractant',
-      name: 'Massage Décontractant',
-      duration: '60 min',
-      price: 70,
-      category: 'Massage'
+      id: 'soins-perruque',
+      name: 'Soins de perruque (remise à neuf)',
+      icon: <Sparkles className="h-8 w-8 text-primary-pink" />,
+      duration: '75 min',
+      description: 'Remise à neuf pour redonner vie à votre favorite'
     }
   ];
 
   const timeSlots = [
-    '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+    '10:00', '10:30', '11:00', '11:30', '12:00', '12:30',
     '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'
   ];
 
@@ -131,29 +103,39 @@ export default function AppointmentPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="font-elegant text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Prendre un{' '}
-              <span className="text-primary-pink">Rendez-vous</span>
+              Réserve ton{' '}
+              <span className="text-primary-pink">Moment Glam</span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Réservez votre créneau en quelques clics et offrez-vous un moment de détente et de beauté.
+            <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+              ✨ Prête pour un moment rien que pour toi ? Réserve ton rendez-vous en ligne !
+            </p>
+            <p className="text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed mt-4">
+              Chez Queen&apos;s Glam, chaque rendez-vous est une expérience sur mesure, pensée pour te sublimer.
             </p>
           </div>
+        </div>
+        
+        {/* Decorative elements */}
+        <div className="absolute top-10 left-10 text-primary-pink opacity-20">
+          <Crown className="h-12 w-12" />
+        </div>
+        <div className="absolute bottom-10 right-10 text-primary-pink opacity-20">
+          <Sparkles className="h-12 w-12" />
         </div>
       </section>
 
       {isSubmitted ? (
         <section className="py-16 bg-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-8 text-center">
-              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-8 w-8 text-green-600" />
+            <div className="bg-gradient-to-br from-soft-pink to-light-pink rounded-lg p-8 text-center">
+              <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="h-8 w-8 text-primary-pink" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Rendez-vous Confirmé !
+                ✨ Rendez-vous Confirmé !
               </h2>
-              <p className="text-gray-600 mb-6">
-                Votre rendez-vous a été enregistré avec succès. Nous vous enverrons un email de confirmation 
-                avec tous les détails de votre réservation.
+              <p className="text-gray-700 mb-6">
+                ✅ Confirmation instantanée par e-mail ou SMS après réservation.
               </p>
               <div className="bg-white rounded-lg p-6 max-w-md mx-auto">
                 <h3 className="font-semibold text-gray-900 mb-3">Récapitulatif :</h3>
@@ -162,7 +144,7 @@ export default function AppointmentPage() {
                   <p><strong>Date :</strong> {selectedDate}</p>
                   <p><strong>Heure :</strong> {selectedTime}</p>
                   <p><strong>Durée :</strong> {selectedServiceData?.duration}</p>
-                  <p><strong>Prix :</strong> {selectedServiceData?.price}€</p>
+                  <p><strong>Lieu :</strong> Gatineau (adresse précisée après confirmation)</p>
                 </div>
               </div>
             </div>
@@ -173,28 +155,30 @@ export default function AppointmentPage() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Service Selection */}
-              <div className="bg-pale-pink rounded-lg p-6">
+              <div className="bg-pale-pink rounded-lg p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                  <Calendar className="h-6 w-6 mr-2 text-primary-pink" />
-                  Choisir un Service
+                  <Crown className="h-6 w-6 mr-2 text-primary-pink" />
+                  ✨ Tu peux réserver directement pour :
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {services.map((service) => (
                     <div
                       key={service.id}
                       onClick={() => setSelectedService(service.id)}
-                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      className={`p-6 rounded-lg border-2 cursor-pointer transition-all hover:shadow-lg ${
                         selectedService === service.id
                           ? 'border-primary-pink bg-white shadow-md'
                           : 'border-gray-200 bg-white hover:border-primary-pink/50'
                       }`}
                     >
-                      <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center mb-4">
+                        <div className="bg-soft-pink rounded-full w-12 h-12 flex items-center justify-center mr-4">
+                          {service.icon}
+                        </div>
                         <h3 className="font-semibold text-gray-900">{service.name}</h3>
-                        <span className="text-primary-pink font-bold">{service.price}€</span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{service.category}</p>
-                      <div className="flex items-center text-sm text-gray-500">
+                      <p className="text-sm text-gray-600 mb-3">{service.description}</p>
+                      <div className="flex items-center text-sm text-primary-pink font-medium">
                         <Clock className="h-4 w-4 mr-1" />
                         {service.duration}
                       </div>
@@ -204,34 +188,38 @@ export default function AppointmentPage() {
               </div>
 
               {/* Date and Time Selection */}
-              <div className="bg-pale-pink rounded-lg p-6">
+              <div className="bg-white rounded-lg p-8 border border-gray-100 shadow-md">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                  <Clock className="h-6 w-6 mr-2 text-primary-pink" />
-                  Choisir Date et Heure
+                  <Calendar className="h-6 w-6 mr-2 text-primary-pink" />
+                  ✨ Choisis ta date, ton heure, ton service… et laisse la magie opérer.
                 </h2>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
                       Date *
                     </label>
                     <input
                       type="date"
+                      id="date"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
-                      className="form-input"
                       required
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all"
                     />
                   </div>
+                  
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-2">
                       Heure *
                     </label>
                     <select
+                      id="time"
                       value={selectedTime}
                       onChange={(e) => setSelectedTime(e.target.value)}
-                      className="form-input"
                       required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all"
                     >
                       <option value="">Choisir une heure</option>
                       {timeSlots.map((time) => (
@@ -245,12 +233,13 @@ export default function AppointmentPage() {
               </div>
 
               {/* Personal Information */}
-              <div className="bg-pale-pink rounded-lg p-6">
+              <div className="bg-white rounded-lg p-8 border border-gray-100 shadow-md">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                   <User className="h-6 w-6 mr-2 text-primary-pink" />
-                  Informations Personnelles
+                  Tes Coordonnées
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                       Nom complet *
@@ -262,10 +251,11 @@ export default function AppointmentPage() {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      className="form-input"
-                      placeholder="Votre nom complet"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all"
+                      placeholder="Ton nom complet"
                     />
                   </div>
+                  
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                       Email *
@@ -277,10 +267,13 @@ export default function AppointmentPage() {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="form-input"
-                      placeholder="votre@email.com"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all"
+                      placeholder="ton@email.com"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div>
                     <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                       Téléphone *
@@ -292,14 +285,15 @@ export default function AppointmentPage() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       required
-                      className="form-input"
-                      placeholder="+33 1 23 45 67 89"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all"
+                      placeholder="Ton numéro de téléphone"
                     />
                   </div>
                 </div>
-                <div className="mt-6">
+
+                <div>
                   <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-                    Notes ou demandes spéciales
+                    Notes spéciales (optionnel)
                   </label>
                   <textarea
                     id="notes"
@@ -307,54 +301,29 @@ export default function AppointmentPage() {
                     value={formData.notes}
                     onChange={handleInputChange}
                     rows={4}
-                    className="form-textarea"
-                    placeholder="Informations supplémentaires, allergies, préférences..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all resize-none"
+                    placeholder="Précisions sur tes préférences, demandes spéciales..."
                   />
                 </div>
               </div>
-
-              {/* Summary */}
-              {selectedServiceData && (
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Récapitulatif</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Service :</span>
-                      <span className="font-medium">{selectedServiceData.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Durée :</span>
-                      <span className="font-medium">{selectedServiceData.duration}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Prix :</span>
-                      <span className="font-bold text-primary-pink">{selectedServiceData.price}€</span>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Submit Button */}
               <div className="text-center">
                 <button
                   type="submit"
-                  disabled={isSubmitting || !selectedService || !selectedDate || !selectedTime}
-                  className={`btn-primary text-lg px-8 py-4 flex items-center justify-center mx-auto ${
-                    isSubmitting || !selectedService || !selectedDate || !selectedTime
-                      ? 'opacity-50 cursor-not-allowed'
-                      : ''
-                  }`}
+                  disabled={isSubmitting}
+                  className="btn-primary text-lg px-12 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
-                    <>
+                    <span className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                       Réservation en cours...
-                    </>
+                    </span>
                   ) : (
-                    <>
-                      Confirmer le Rendez-vous
-                      <ArrowRight className="h-5 w-5 ml-2" />
-                    </>
+                    <span className="flex items-center justify-center">
+                      Réserver maintenant
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </span>
                   )}
                 </button>
               </div>
@@ -365,75 +334,42 @@ export default function AppointmentPage() {
 
       {/* Information Section */}
       <section className="py-16 bg-pale-pink">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="font-elegant text-3xl font-bold text-gray-900 mb-4">
-              Informations Importantes
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Quelques points à connaître avant votre rendez-vous.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-lg p-6 text-center">
-              <div className="bg-soft-pink rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Clock className="h-8 w-8 text-primary-pink" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Horaires
-              </h3>
-              <p className="text-gray-600">
-                Nous sommes ouverts du lundi au samedi de 9h à 19h. 
-                Merci d'arriver 10 minutes avant votre rendez-vous.
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div className="text-center mb-8">
+              <h2 className="font-elegant text-3xl font-bold text-gray-900 mb-4">
+                ✨ Ton moment beauté commence ici
+              </h2>
+              <p className="text-lg text-gray-700 leading-relaxed">
+                Rendez-vous à Gatineau (adresse précisée après confirmation).
               </p>
             </div>
             
-            <div className="bg-white rounded-lg p-6 text-center">
-              <div className="bg-soft-pink rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Calendar className="h-8 w-8 text-primary-pink" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center p-6">
+                <div className="bg-soft-pink rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="h-8 w-8 text-primary-pink" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">Confirmation Instantanée</h3>
+                <p className="text-sm text-gray-600">Email ou SMS après réservation</p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Annulation
-              </h3>
-              <p className="text-gray-600">
-                Merci de nous prévenir au moins 24h à l'avance en cas d'annulation 
-                ou de modification de votre rendez-vous.
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-lg p-6 text-center">
-              <div className="bg-soft-pink rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <User className="h-8 w-8 text-primary-pink" />
+              
+              <div className="text-center p-6">
+                <div className="bg-soft-pink rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <Crown className="h-8 w-8 text-primary-pink" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">Expérience Sur Mesure</h3>
+                <p className="text-sm text-gray-600">Chaque rendez-vous est personnalisé</p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Préparation
-              </h3>
-              <p className="text-gray-600">
-                Pour certains soins, nous vous demanderons de venir sans maquillage. 
-                Nous vous fournirons tous les détails par email.
-              </p>
+              
+              <div className="text-center p-6">
+                <div className="bg-soft-pink rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="h-8 w-8 text-primary-pink" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">Magie Queen&apos;s Glam</h3>
+                <p className="text-sm text-gray-600">Laisse la magie opérer</p>
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-primary-pink to-rose-pink">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="font-elegant text-3xl md:text-4xl font-bold text-white mb-6">
-            Questions sur nos Services ?
-          </h2>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Notre équipe est là pour vous conseiller et répondre à toutes vos questions.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/contact" className="bg-white text-primary-pink px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-all">
-              Nous Contacter
-            </a>
-            <a href="/services" className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-primary-pink transition-all">
-              Découvrir nos Services
-            </a>
           </div>
         </div>
       </section>
