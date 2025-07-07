@@ -675,6 +675,23 @@ export interface Database {
           service_name: string | null
         }
       }
+      product_ratings: {
+        Row: {
+          id: string
+          name: string
+          sku: string | null
+          price: number | null
+          in_stock: boolean | null
+          is_featured: boolean | null
+          short_description: string | null
+          description: string | null
+          brand: string | null
+          category_name: string | null
+          category_slug: string | null
+          average_rating: number | null
+          review_count: number | null
+        }
+      }
     }
     Functions: {
       check_appointment_availability: {
@@ -718,8 +735,9 @@ export type Review = Tables<'reviews'>
 
 // View types
 export type DashboardOverview = Database['public']['Views']['dashboard_overview']['Row']
-export type LowStockProduct = Database['public']['Views']['low_stock_products']['Row']
+export type LowStockProduct = Database['public']['Views']['out_of_stock_products']['Row']
 export type TodaysAppointment = Database['public']['Views']['todays_appointments']['Row']
+export type ProductRating = Database['public']['Views']['product_ratings']['Row']
 
 // Function types
 export type CheckAppointmentAvailability = Database['public']['Functions']['check_appointment_availability']

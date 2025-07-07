@@ -1,117 +1,110 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
 import { ShoppingBag, Star, Heart, Crown, Sparkles, Palette, CheckCircle } from 'lucide-react';
+import { productsApi, categoriesApi, supabase } from '../../lib/supabase';
+import { ProductRating } from '../../types/database';
 
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([]);
+  const [products, setProducts] = useState<ProductRating[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [cart, setCart] = useState<{[key: string]: number}>({});
 
+  // Fetch categories and products on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch categories
+        const categoriesData = await categoriesApi.getAll();
+        const categoriesWithAll = [
+          { id: 'all', name: 'Tous les produits', slug: 'all' },
+          ...categoriesData
+        ];
+        setCategories(categoriesWithAll);
+        
+        // Fetch products with ratings
+        const productsData = await productsApi.getWithRatings();
+        setProducts(productsData);
+        
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Erreur lors du chargement des données');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const categories = [
-    { id: 'all', name: 'Tous les produits' },
-    { id: 'lip-gloss', name: 'Lip Gloss' },
-    { id: 'masques-levres', name: 'Masques à Lèvres' },
-    { id: 'perruques', name: 'Perruques Naturelles' }
-  ];
+    fetchData();
+  }, []);
 
-  const products = [
-    {
-      id: 1,
-      name: 'Lip Gloss Ultra Hydratant',
-      category: 'lip-gloss',
-      description: 'Fais briller tes lèvres avec notre gloss signature ✨',
-      longDescription: 'Vegan et sans cruauté animale, il hydrate intensément tout en laissant un fini glowy et soyeux. Disponible en 10 teintes sublimes pour tous les tons de peau.',
-      price: 12.99,
-      currency: 'CAD',
-      rating: 4.9,
-      reviews: 156,
-      image: '/api/placeholder/300/300',
-      inStock: true,
-      popular: true,
-      features: [
-        'Texture non collante',
-        'Parfum léger', 
-        'Format pratique'
-      ]
-    },
-    {
-      id: 2,
-      name: 'Lip Gloss Fini Matte',
-      category: 'lip-gloss',
-      description: 'L&apos;élégance du matte, sans compromis sur le confort.',
-      longDescription: 'Notre gamme matte offre une couleur intense et une tenue longue durée, sans dessécher les lèvres. Disponible en 2 teintes élégantes.',
-      price: 12.99,
-      currency: 'CAD',
-      rating: 4.8,
-      reviews: 89,
-      image: '/api/placeholder/300/300',
-      inStock: true,
-      popular: false,
-      features: [
-        'Fini matte élégant',
-        'Tenue longue durée',
-        'Confort optimal'
-      ]
-    },
-    {
-      id: 3,
-      name: 'Masque à Lèvres',
-      category: 'masques-levres',
-      description: 'Ton rituel self-care du soir commence ici.',
-      longDescription: 'Ce masque à lèvres riche et fondant est un soin de nuit pour des lèvres réparées et repulpées au réveil. Disponible en 3 saveurs gourmandes : fraise, bonbon et vanille.',
-      price: 12.99,
-      currency: 'CAD',
-      rating: 4.9,
-      reviews: 203,
-      image: '/api/placeholder/300/300',
-      inStock: true,
-      popular: true,
-      features: [
-        'Boost d&apos;hydratation',
-        'Réduction des ridules',
-        'Lèvres plus lisses, plus douces',
-        'Nourrit et repulpe'
-      ]
-    },
-    {
-      id: 4,
-      name: 'Perruques Naturelles Premium',
-      category: 'perruques',
-      description: 'Révèle ton style avec nos perruques 100 % cheveux naturels.',
-      longDescription: 'Confort, élégance et durabilité réunis dans des modèles pensés pour t&apos;accompagner en toute confiance. Disponibles en plusieurs textures : lisse, ondulée, bouclée, kinky, afro etc. Options : Lace frontale, sans colle, avec colle, personnalisables à la demande.',
-      price: null,
-      currency: 'CAD',
-      rating: 5.0,
-      reviews: 67,
-      image: '/api/placeholder/300/300',
-      inStock: true,
-      popular: true,
-      features: [
-        'Faciles à coiffer',
-        'Finition naturelle',
-        'Effet "flawless"'
-      ]
-    }
-  ];
+  // Real-time subscription for products
+  useEffect(() => {
+    const channel = supabase
+      .channel('products_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'products'
+        },
+        async (payload: { eventType: string; new: Record<string, unknown>; old: Record<string, unknown> }) => {
+          console.log('Product change detected:', payload);
+          // Refresh products data
+          try {
+            const productsData = await productsApi.getWithRatings();
+            setProducts(productsData);
+          } catch (err) {
+            console.error('Error refreshing products:', err);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reviews'
+        },
+        async (payload: { eventType: string; new: Record<string, unknown>; old: Record<string, unknown> }) => {
+          console.log('Review change detected:', payload);
+          // Refresh products data to update ratings
+          try {
+            const productsData = await productsApi.getWithRatings();
+            setProducts(productsData);
+          } catch (err) {
+            console.error('Error refreshing products:', err);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
 
   const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || product.category_slug === selectedCategory;
     return matchesCategory;
   });
 
-  const [cart, setCart] = useState<{[key: number]: number}>({});
-
-  const addToCart = (productId: number) => {
+  const addToCart = (productId: string) => {
     setCart(prev => ({
       ...prev,
       [productId]: (prev[productId] || 0) + 1
     }));
   };
 
-  const removeFromCart = (productId: number) => {
+  const removeFromCart = (productId: string) => {
     setCart(prev => {
       const newCart = { ...prev };
       if (newCart[productId] > 0) {
@@ -125,6 +118,75 @@ export default function ProductsPage() {
   };
 
   const cartItemCount = Object.values(cart).reduce((sum, count) => sum + count, 0);
+
+  // Helper function to get product features based on category
+  const getProductFeatures = (product: ProductRating) => {
+    const features: { [key: string]: string[] } = {
+      'lip-gloss': [
+        'Texture non collante',
+        'Parfum léger', 
+        'Format pratique'
+      ],
+      'masques-levres': [
+        'Boost d\'hydratation',
+        'Réduction des ridules',
+        'Lèvres plus lisses, plus douces',
+        'Nourrit et repulpe'
+      ],
+      'perruques': [
+        'Faciles à coiffer',
+        'Finition naturelle',
+        'Effet "flawless"'
+      ]
+    };
+    
+    return features[product.category_slug || ''] || [
+      'Qualité premium',
+      'Résultats garantis',
+      'Satisfaction client'
+    ];
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navigation />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-pink mx-auto mb-4"></div>
+            <p className="text-gray-600">Chargement des produits...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navigation />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="h-8 w-8 text-red-500" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Erreur de chargement
+            </h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-primary-pink text-white px-6 py-2 rounded-lg hover:bg-dark-pink transition-all"
+            >
+              Réessayer
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -162,9 +224,9 @@ export default function ProductsPage() {
               {categories.map((category) => (
                 <button
                   key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
+                  onClick={() => setSelectedCategory(category.slug)}
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    selectedCategory === category.id
+                    selectedCategory === category.slug
                       ? 'bg-primary-pink text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
@@ -195,7 +257,7 @@ export default function ProductsPage() {
               <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all">
                 {/* Product Image */}
                 <div className="h-64 bg-gradient-to-br from-soft-pink to-light-pink flex items-center justify-center relative">
-                  {product.popular && (
+                  {product.is_featured && (
                     <div className="absolute top-4 left-4 bg-primary-pink text-white px-3 py-1 rounded-full text-sm font-medium">
                       ✨ Populaire
                     </div>
@@ -210,26 +272,28 @@ export default function ProductsPage() {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="text-xl font-bold text-gray-900">
-                      {product.name} – Queen&apos;s Glam
+                      {product.name} – {product.brand || 'Queen\'s Glam'}
                     </h3>
                     <div className="flex items-center space-x-1">
                       <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-sm text-gray-600">{product.rating}</span>
+                      <span className="text-sm text-gray-600">
+                        {product.average_rating || 'N/A'}
+                      </span>
                     </div>
                   </div>
 
                   <p className="text-gray-700 mb-4 leading-relaxed">
-                    {product.description}
+                    {product.short_description}
                   </p>
 
                   <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-                    {product.longDescription}
+                    {product.description}
                   </p>
 
                   {/* Features */}
                   <div className="mb-6">
                     <div className="grid grid-cols-1 gap-2">
-                      {product.features.map((feature, index) => (
+                      {getProductFeatures(product).map((feature, index) => (
                         <div key={index} className="flex items-center space-x-2">
                           <CheckCircle className="h-4 w-4 text-primary-pink flex-shrink-0" />
                           <span className="text-sm text-gray-600">{feature}</span>
@@ -243,7 +307,7 @@ export default function ProductsPage() {
                     <div className="flex items-center space-x-2">
                       {product.price ? (
                         <span className="text-2xl font-bold text-primary-pink">
-                          {product.price} $ {product.currency}
+                          {product.price.toFixed(2)} €
                         </span>
                       ) : (
                         <span className="text-lg font-semibold text-gray-700">
@@ -281,7 +345,7 @@ export default function ProductsPage() {
                   {/* Reviews */}
                   <div className="mt-4 pt-4 border-t border-gray-100">
                     <p className="text-sm text-gray-500">
-                      {product.reviews} avis clients
+                      {product.review_count || 0} avis clients
                     </p>
                   </div>
                 </div>

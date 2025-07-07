@@ -105,6 +105,92 @@ export const productsApi = {
     
     if (error) throw error
     return data
+  },
+
+  // Get products with ratings and reviews
+  getWithRatings: async () => {
+    const { data, error } = await supabase
+      .from('product_ratings')
+      .select('*')
+      .order('is_featured', { ascending: false })
+      .order('average_rating', { ascending: false })
+    
+    if (error) throw error
+    return data
+  }
+}
+
+// Categories
+export const categoriesApi = {
+  // Get all active product categories
+  getAll: async () => {
+    const { data, error } = await supabase
+      .from('product_categories')
+      .select('*')
+      .eq('is_active', true)
+      .order('name', { ascending: true })
+    
+    if (error) throw error
+    return data
+  },
+
+  // Get category by ID
+  getById: async (id: string) => {
+    const { data, error } = await supabase
+      .from('product_categories')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Get category by slug
+  getBySlug: async (slug: string) => {
+    const { data, error } = await supabase
+      .from('product_categories')
+      .select('*')
+      .eq('slug', slug)
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Create new category
+  create: async (category: Database['public']['Tables']['product_categories']['Insert']) => {
+    const { data, error } = await supabase
+      .from('product_categories')
+      .insert(category)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Update category
+  update: async (id: string, updates: Database['public']['Tables']['product_categories']['Update']) => {
+    const { data, error } = await supabase
+      .from('product_categories')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Delete category (soft delete)
+  delete: async (id: string) => {
+    const { error } = await supabase
+      .from('product_categories')
+      .update({ is_active: false })
+      .eq('id', id)
+    
+    if (error) throw error
   }
 }
 
@@ -504,8 +590,6 @@ export const dashboardApi = {
     return data
   }
 }
-
-
 
 // Reviews
 export const reviewsApi = {

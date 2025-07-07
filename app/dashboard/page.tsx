@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
+import AddProductModal from '../../components/AddProductModal';
+import ProductsTable from '../../components/ProductsTable';
 import { 
   Settings, 
   ShoppingBag, 
@@ -19,6 +21,8 @@ import {
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const stats = [
     { title: 'Commandes', value: '24', change: '+12%', icon: ShoppingBag },
@@ -41,13 +45,6 @@ export default function DashboardPage() {
     { id: 4, customer: 'Caroline F.', service: 'Manucure', date: '17 déc 2024', time: '15:00' }
   ];
 
-  const products = [
-    { id: 1, name: 'Crème Hydratante Intense', price: 28.50, stock: 15, category: 'Soins du visage' },
-    { id: 2, name: 'Sérum Anti-âge', price: 45.00, stock: 8, category: 'Soins du visage' },
-    { id: 3, name: 'Fond de Teint Lumineux', price: 32.00, stock: 22, category: 'Maquillage' },
-    { id: 4, name: 'Palette Ombre à Paupières', price: 38.50, stock: 12, category: 'Maquillage' }
-  ];
-
   const services = [
     { id: 1, name: 'Soin Hydratant', price: 45, duration: '45 min', category: 'Soins du visage' },
     { id: 2, name: 'Soin Anti-âge', price: 65, duration: '60 min', category: 'Soins du visage' },
@@ -63,6 +60,12 @@ export default function DashboardPage() {
     { id: 'appointments', name: 'Rendez-vous', icon: Calendar },
     { id: 'customers', name: 'Clients', icon: Users }
   ];
+
+  const handleProductAdded = () => {
+    // Increment refresh trigger to force table refresh
+    setRefreshTrigger(prev => prev + 1);
+    console.log('Product added successfully - refreshing table');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -208,69 +211,18 @@ export default function DashboardPage() {
               <div className="bg-white rounded-lg shadow-sm">
                 <div className="p-6 border-b border-gray-200 flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-gray-900">Gestion des Produits</h3>
-                  <button className="btn-primary">
+                  <button 
+                    onClick={() => setIsAddProductModalOpen(true)}
+                    className="btn-primary"
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Ajouter un Produit
                   </button>
                 </div>
                 <div className="p-6">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead>
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Produit
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Catégorie
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Prix
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Stock
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {products.map((product) => (
-                          <tr key={product.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{product.category}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{product.price}€</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs rounded-full ${
-                                product.stock > 10 ? 'bg-green-100 text-green-800' :
-                                product.stock > 5 ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
-                              }`}>
-                                {product.stock}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <div className="flex space-x-2">
-                                <button className="text-primary-pink hover:text-dark-pink">
-                                  <Edit className="h-4 w-4" />
-                                </button>
-                                <button className="text-red-600 hover:text-red-900">
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <ProductsTable 
+                    refreshTrigger={refreshTrigger}
+                  />
                 </div>
               </div>
             )}
@@ -434,6 +386,13 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Add Product Modal */}
+      <AddProductModal
+        isOpen={isAddProductModalOpen}
+        onClose={() => setIsAddProductModalOpen(false)}
+        onProductAdded={handleProductAdded}
+      />
 
       <Footer />
     </div>
