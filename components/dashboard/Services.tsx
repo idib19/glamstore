@@ -1,0 +1,165 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import { servicesApi } from '../../lib/supabase';
+import ConfirmDialog from '../ConfirmDialog';
+
+interface ServicesProps {
+  onAddService: () => void;
+  onEditService: (service: any) => void;
+}
+
+export default function Services({ onAddService, onEditService }: ServicesProps) {
+  const [services, setServices] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
+
+  // Load services data
+  const loadServices = async () => {
+    try {
+      setIsLoading(true);
+      const data = await servicesApi.getAll();
+      setServices(data);
+    } catch (error) {
+      console.error('Error loading services:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadServices();
+  }, []);
+
+  // Service actions
+  const handleDeleteService = async (serviceId: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Supprimer le service',
+      message: 'Êtes-vous sûr de vouloir supprimer ce service ? Cette action ne peut pas être annulée.',
+      onConfirm: async () => {
+        try {
+          await servicesApi.delete(serviceId);
+          loadServices();
+          console.log('Service deleted successfully');
+        } catch (error) {
+          console.error('Error deleting service:', error);
+          alert('Erreur lors de la suppression du service');
+        }
+      }
+    });
+  };
+
+  return (
+    <>
+      <div className="bg-white rounded-lg shadow-sm">
+        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-gray-900">Gestion des Services</h3>
+          <button 
+            onClick={onAddService}
+            className="btn-primary"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Ajouter un Service
+          </button>
+        </div>
+        <div className="p-6">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-pink"></div>
+              <span className="ml-2 text-gray-600">Chargement des services...</span>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Service
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Catégorie
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Prix
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Durée
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {services.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                        Aucun service trouvé
+                      </td>
+                    </tr>
+                  ) : (
+                    services.map((service) => (
+                      <tr key={service.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{service.name}</div>
+                          {service.description && (
+                            <div className="text-sm text-gray-500">{service.description}</div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {service.service_categories?.name || 'Non catégorisé'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{service.price}€</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{service.duration_minutes} min</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button 
+                              onClick={() => onEditService(service)}
+                              className="text-primary-pink hover:text-dark-pink transition-colors"
+                              title="Modifier"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteService(service.id)}
+                              className="text-red-600 hover:text-red-900 transition-colors"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+      />
+    </>
+  );
+} 

@@ -369,126 +369,316 @@ export const servicesApi = {
 
 // Appointments
 export const appointmentsApi = {
+  // Test database connection and table structure
+  testConnection: async () => {
+    console.log('🔍 [appointmentsApi.testConnection] Testing database connection...');
+    
+    try {
+      // Test basic connection
+      const { data: testData, error: testError } = await supabase
+        .from('appointments')
+        .select('count')
+        .limit(1);
+      
+      console.log('🔍 [appointmentsApi.testConnection] Basic connection test:', {
+        success: !testError,
+        error: testError
+      });
+      
+      // Test table structure
+      const { data: structureData, error: structureError } = await supabase
+        .from('appointments')
+        .select(`
+          id,
+          customer_id,
+          service_id,
+          appointment_date,
+          start_time,
+          end_time,
+          status,
+          total_price
+        `)
+        .limit(1);
+      
+      console.log('🔍 [appointmentsApi.testConnection] Table structure test:', {
+        success: !structureError,
+        error: structureError,
+        sampleData: structureData?.[0]
+      });
+      
+      return {
+        connectionOk: !testError,
+        structureOk: !structureError,
+        testError,
+        structureError
+      };
+    } catch (error) {
+      console.error('❌ [appointmentsApi.testConnection] Test failed:', error);
+      return {
+        connectionOk: false,
+        structureOk: false,
+        error
+      };
+    }
+  },
+
   // Get all appointments
   getAll: async () => {
-    const { data, error } = await supabase
-      .from('appointments')
-      .select(`
-        *,
-        customers (
-          id,
-          first_name,
-          last_name,
-          email,
-          phone
-        ),
-        services (
-          id,
-          name,
-          price,
-          duration_minutes
-        ),
-        users (
-          id,
-          first_name,
-          last_name
-        )
-      `)
-      .order('appointment_date', { ascending: true })
-      .order('start_time', { ascending: true })
+    console.log('🔍 [appointmentsApi.getAll] Starting appointment fetch...');
     
-    if (error) throw error
-    return data
+    try {
+      console.log('🔍 [appointmentsApi.getAll] Building query...');
+      
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          *,
+          customers (
+            id,
+            first_name,
+            last_name,
+            email,
+            phone
+          ),
+          services (
+            id,
+            name,
+            price,
+            duration_minutes
+          )
+        `)
+        .order('appointment_date', { ascending: true })
+        .order('start_time', { ascending: true })
+      
+      console.log('🔍 [appointmentsApi.getAll] Query executed');
+      console.log('🔍 [appointmentsApi.getAll] Error:', error);
+      console.log('🔍 [appointmentsApi.getAll] Data count:', data?.length || 0);
+      
+      if (error) {
+        console.error('❌ [appointmentsApi.getAll] Supabase error:', error);
+        console.error('❌ [appointmentsApi.getAll] Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+      
+      if (!data) {
+        console.warn('⚠️ [appointmentsApi.getAll] No data returned from query');
+        return [];
+      }
+      
+      console.log('✅ [appointmentsApi.getAll] Successfully fetched appointments:', {
+        total: data.length,
+        sample: data.slice(0, 2).map(apt => ({
+          id: apt.id,
+          date: apt.appointment_date,
+          time: apt.start_time,
+          customer: apt.customers ? `${apt.customers.first_name} ${apt.customers.last_name}` : 'No customer',
+          service: apt.services?.name || 'No service',
+          status: apt.status
+        }))
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('❌ [appointmentsApi.getAll] Unexpected error:', error);
+      console.error('❌ [appointmentsApi.getAll] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      throw error;
+    }
   },
 
   // Get appointments by date range
   getByDateRange: async (startDate: string, endDate: string) => {
-    const { data, error } = await supabase
-      .from('appointments')
-      .select(`
-        *,
-        customers (
-          id,
-          first_name,
-          last_name,
-          email,
-          phone
-        ),
-        services (
-          id,
-          name,
-          price,
-          duration_minutes
-        )
-      `)
-      .gte('appointment_date', startDate)
-      .lte('appointment_date', endDate)
-      .order('appointment_date', { ascending: true })
-      .order('start_time', { ascending: true })
+    console.log('🔍 [appointmentsApi.getByDateRange] Fetching appointments from', startDate, 'to', endDate);
     
-    if (error) throw error
-    return data
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          *,
+          customers (
+            id,
+            first_name,
+            last_name,
+            email,
+            phone
+          ),
+          services (
+            id,
+            name,
+            price,
+            duration_minutes
+          )
+        `)
+        .gte('appointment_date', startDate)
+        .lte('appointment_date', endDate)
+        .order('appointment_date', { ascending: true })
+        .order('start_time', { ascending: true })
+      
+      console.log('✅ [appointmentsApi.getByDateRange] Found', data?.length || 0, 'appointments');
+      
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('❌ [appointmentsApi.getByDateRange] Error:', error);
+      throw error;
+    }
   },
 
   // Get today's appointments
   getTodays: async () => {
-    const { data, error } = await supabase
-      .from('todays_appointments')
-      .select('*')
-      .order('start_time', { ascending: true })
+    console.log('🔍 [appointmentsApi.getTodays] Fetching today\'s appointments...');
     
-    if (error) throw error
-    return data
+    try {
+      const { data, error } = await supabase
+        .from('todays_appointments')
+        .select('*')
+        .order('start_time', { ascending: true })
+      
+      console.log('✅ [appointmentsApi.getTodays] Found', data?.length || 0, 'appointments today');
+      
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('❌ [appointmentsApi.getTodays] Error:', error);
+      throw error;
+    }
   },
 
   // Create new appointment
   create: async (appointment: Database['public']['Tables']['appointments']['Insert']) => {
-    const { data, error } = await supabase
-      .from('appointments')
-      .insert(appointment)
-      .select()
-      .single()
+    console.log('🔍 [appointmentsApi.create] Creating new appointment:', {
+      customer_id: appointment.customer_id,
+      service_id: appointment.service_id,
+      date: appointment.appointment_date,
+      time: appointment.start_time,
+      status: appointment.status
+    });
     
-    if (error) throw error
-    return data
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert(appointment)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('❌ [appointmentsApi.create] Error creating appointment:', error);
+        throw error;
+      }
+      
+      console.log('✅ [appointmentsApi.create] Appointment created successfully:', data.id);
+      return data
+    } catch (error) {
+      console.error('❌ [appointmentsApi.create] Unexpected error:', error);
+      throw error;
+    }
   },
 
   // Update appointment
   update: async (id: string, updates: Database['public']['Tables']['appointments']['Update']) => {
-    const { data, error } = await supabase
-      .from('appointments')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single()
+    console.log('🔍 [appointmentsApi.update] Updating appointment:', id, 'with updates:', updates);
     
-    if (error) throw error
-    return data
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('❌ [appointmentsApi.update] Error updating appointment:', error);
+        throw error;
+      }
+      
+      console.log('✅ [appointmentsApi.update] Appointment updated successfully');
+      return data
+    } catch (error) {
+      console.error('❌ [appointmentsApi.update] Unexpected error:', error);
+      throw error;
+    }
   },
 
   // Check appointment availability
   checkAvailability: async (date: string, startTime: string, durationMinutes: number) => {
-    const { data, error } = await supabase
-      .rpc('check_appointment_availability', {
-        p_appointment_date: date,
-        p_start_time: startTime,
-        p_duration_minutes: durationMinutes
-      })
+    console.log('🔍 [appointmentsApi.checkAvailability] Checking availability for:', {
+      date,
+      startTime,
+      durationMinutes
+    });
     
-    if (error) throw error
-    return data
+    try {
+      const { data, error } = await supabase
+        .rpc('check_appointment_availability', {
+          p_appointment_date: date,
+          p_start_time: startTime,
+          p_duration_minutes: durationMinutes
+        })
+      
+      if (error) {
+        console.error('❌ [appointmentsApi.checkAvailability] Error checking availability:', error);
+        throw error;
+      }
+      
+      console.log('✅ [appointmentsApi.checkAvailability] Availability result:', data);
+      return data
+    } catch (error) {
+      console.error('❌ [appointmentsApi.checkAvailability] Unexpected error:', error);
+      throw error;
+    }
   },
 
   // Calculate appointment end time
   calculateEndTime: async (startTime: string, durationMinutes: number) => {
-    const { data, error } = await supabase
-      .rpc('calculate_appointment_end_time', {
-        p_start_time: startTime,
-        p_duration_minutes: durationMinutes
-      })
+    console.log('🔍 [appointmentsApi.calculateEndTime] Calculating end time for:', {
+      startTime,
+      durationMinutes
+    });
     
-    if (error) throw error
-    return data
+    try {
+      const { data, error } = await supabase
+        .rpc('calculate_appointment_end_time', {
+          p_start_time: startTime,
+          p_duration_minutes: durationMinutes
+        })
+      
+      if (error) {
+        console.error('❌ [appointmentsApi.calculateEndTime] Error calculating end time:', error);
+        throw error;
+      }
+      
+      console.log('✅ [appointmentsApi.calculateEndTime] End time calculated:', data);
+      return data
+    } catch (error) {
+      console.error('❌ [appointmentsApi.calculateEndTime] Unexpected error:', error);
+      throw error;
+    }
+  },
+
+  // Delete appointment (soft delete by updating status)
+  delete: async (id: string) => {
+    console.log('🔍 [appointmentsApi.delete] Cancelling appointment:', id);
+    
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'cancelled' })
+        .eq('id', id)
+      
+      if (error) {
+        console.error('❌ [appointmentsApi.delete] Error cancelling appointment:', error);
+        throw error;
+      }
+      
+      console.log('✅ [appointmentsApi.delete] Appointment cancelled successfully');
+    } catch (error) {
+      console.error('❌ [appointmentsApi.delete] Unexpected error:', error);
+      throw error;
+    }
   }
 }
 

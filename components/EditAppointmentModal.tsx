@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { X, Save, Loader2 } from 'lucide-react';
 import { appointmentsApi, servicesApi, customersApi } from '../lib/supabase';
+import DatePicker from './DatePicker';
+import TimePicker from './TimePicker';
 
 interface Appointment {
   id: string;
@@ -45,6 +47,8 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
   const [isLoading, setIsLoading] = useState(false);
   const [services, setServices] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [formData, setFormData] = useState({
     customer_id: '',
     service_id: '',
@@ -75,6 +79,15 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
     }
   }, [isOpen, appointment]);
 
+  // Load available slots when date and service are selected
+  useEffect(() => {
+    if (formData.appointment_date && formData.service_id) {
+      loadAvailableSlots();
+    } else {
+      setAvailableSlots([]);
+    }
+  }, [formData.appointment_date, formData.service_id]);
+
   const loadServices = async () => {
     try {
       const data = await servicesApi.getAll();
@@ -90,6 +103,54 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
       setCustomers(data);
     } catch (error) {
       console.error('Error loading customers:', error);
+    }
+  };
+
+  const loadAvailableSlots = async () => {
+    if (!formData.appointment_date || !formData.service_id) return;
+
+    try {
+      setIsLoadingSlots(true);
+      const selectedService = services.find(s => s.id === formData.service_id);
+      if (!selectedService) return;
+
+      const slots: string[] = [];
+      
+      // Generate time slots for business hours (9 AM to 7 PM)
+      for (let hour = 9; hour < 19; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+          const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+          
+          // Check if this slot is available (excluding current appointment time)
+          const isAvailable = await checkSlotAvailability(formData.appointment_date, timeString, selectedService.duration_minutes);
+          if (isAvailable) {
+            slots.push(timeString);
+          }
+        }
+      }
+      
+      setAvailableSlots(slots);
+    } catch (error) {
+      console.error('Error loading available slots:', error);
+    } finally {
+      setIsLoadingSlots(false);
+    }
+  };
+
+  const checkSlotAvailability = async (date: string, startTime: string, durationMinutes: number): Promise<boolean> => {
+    try {
+      // For editing, we need to exclude the current appointment time
+      const result = await appointmentsApi.checkAvailability(date, startTime, durationMinutes);
+      
+      // If this is the current appointment time, it should be available
+      if (appointment && appointment.appointment_date === date && appointment.start_time === startTime) {
+        return true;
+      }
+      
+      return result === true;
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      return false;
     }
   };
 
@@ -242,12 +303,11 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Date
               </label>
-              <input
-                type="date"
+              <DatePicker
                 value={formData.appointment_date}
-                onChange={(e) => setFormData({ ...formData, appointment_date: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-                required
+                onChange={(date) => setFormData({ ...formData, appointment_date: date, start_time: '' })}
+                placeholder="Sélectionner une date"
+                className="w-full"
               />
             </div>
 
@@ -255,13 +315,20 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Heure de début
               </label>
-              <input
-                type="time"
-                value={formData.start_time}
-                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-                required
-              />
+              {formData.appointment_date && formData.service_id ? (
+                <TimePicker
+                  value={formData.start_time}
+                  onChange={(time) => setFormData({ ...formData, start_time: time })}
+                  availableSlots={availableSlots}
+                  isLoading={isLoadingSlots}
+                  placeholder="Sélectionner une heure"
+                  className="w-full"
+                />
+              ) : (
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 text-sm">
+                  Veuillez d'abord sélectionner une date et un service
+                </div>
+              )}
             </div>
 
             <div>
