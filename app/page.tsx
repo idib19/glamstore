@@ -95,11 +95,11 @@ export default function Home() {
               confiante et rayonnante — à l&apos;intérieur comme à l&apos;extérieur.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/rendez-vous" className="btn-primary text-lg px-8 py-4">
+              <Link href="/rendez-vous" className="btn-primary text-lg px-8 py-4 inline-flex items-center justify-center">
                 Prendre Rendez-vous
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
-              <Link href="/services" className="btn-secondary text-lg px-8 py-4">
+              <Link href="/services" className="btn-secondary text-lg px-8 py-4 inline-flex items-center justify-center">
                 Découvrir nos Services
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
@@ -248,7 +248,7 @@ export default function Home() {
            )}
            
            <div className="text-center mt-12">
-             <Link href="/services" className="btn-primary text-lg px-8 py-4">
+             <Link href="/services" className="btn-primary text-lg px-8 py-4 inline-flex items-center justify-center">
                Découvrir Tous nos Services
                <ArrowRight className="ml-2 h-5 w-5" />
              </Link>
@@ -314,7 +314,7 @@ export default function Home() {
           </div>
           
           <div className="text-center mt-12">
-            <Link href="/avis" className="btn-secondary text-lg px-8 py-4">
+            <Link href="/avis" className="btn-secondary text-lg px-8 py-4 inline-flex items-center justify-center">
               Voir Tous les Avis
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
@@ -332,10 +332,10 @@ export default function Home() {
             Rejoins l&apos;univers Queen&apos;s Glam et offre-toi un moment rien que pour toi.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/rendez-vous" className="bg-white text-primary-pink px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-all">
+            <Link href="/rendez-vous" className="bg-white text-primary-pink px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-all inline-flex items-center justify-center">
               Prendre Rendez-vous
             </Link>
-            <Link href="/contact" className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-primary-pink transition-all">
+            <Link href="/contact" className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-primary-pink transition-all inline-flex items-center justify-center">
               Nous Contacter
             </Link>
           </div>

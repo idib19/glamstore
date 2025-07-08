@@ -28,11 +28,11 @@ a {
 /* Custom component styles using @apply */
 @layer components {
   .btn-primary {
-    @apply bg-primary-pink text-white px-6 py-3 rounded-lg font-medium transition-all hover:bg-dark-pink;
+    @apply bg-primary-pink text-white px-6 py-3 rounded-lg font-medium transition-all hover:bg-dark-pink inline-flex items-center justify-center;
   }
 
   .btn-secondary {
-    @apply bg-soft-pink text-dark-pink px-6 py-3 rounded-lg font-medium transition-all hover:bg-light-pink;
+    @apply bg-soft-pink text-dark-pink px-6 py-3 rounded-lg font-medium transition-all hover:bg-light-pink inline-flex items-center justify-center;
   }
 
   .form-input {
