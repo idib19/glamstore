@@ -219,6 +219,18 @@ export const categoriesApi = {
     return data
   },
 
+  // Get all active service categories
+  getServiceCategories: async () => {
+    const { data, error } = await supabase
+      .from('service_categories')
+      .select('*')
+      .eq('is_active', true)
+      .order('name', { ascending: true })
+    
+    if (error) throw error
+    return data
+  },
+
   // Get category by ID
   getById: async (id: string) => {
     const { data, error } = await supabase
@@ -576,6 +588,16 @@ export const ordersApi = {
     
     if (error) throw error
     return data
+  },
+
+  // Delete order (soft delete by updating status)
+  delete: async (id: string) => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: 'cancelled' })
+      .eq('id', id)
+    
+    if (error) throw error
   }
 }
 
