@@ -288,6 +288,66 @@ export const categoriesApi = {
       .eq('id', id)
     
     if (error) throw error
+  },
+
+  // Service Categories API
+  // Get service category by ID
+  getServiceCategoryById: async (id: string) => {
+    const { data, error } = await supabase
+      .from('service_categories')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Get service category by slug
+  getServiceCategoryBySlug: async (slug: string) => {
+    const { data, error } = await supabase
+      .from('service_categories')
+      .select('*')
+      .eq('slug', slug)
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Create new service category
+  createServiceCategory: async (category: Database['public']['Tables']['service_categories']['Insert']) => {
+    const { data, error } = await supabase
+      .from('service_categories')
+      .insert(category)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Update service category
+  updateServiceCategory: async (id: string, updates: Database['public']['Tables']['service_categories']['Update']) => {
+    const { data, error } = await supabase
+      .from('service_categories')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Delete service category (soft delete)
+  deleteServiceCategory: async (id: string) => {
+    const { error } = await supabase
+      .from('service_categories')
+      .update({ is_active: false })
+      .eq('id', id)
+    
+    if (error) throw error
   }
 }
 

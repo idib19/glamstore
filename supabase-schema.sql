@@ -121,6 +121,7 @@ CREATE TABLE product_categories (
     name VARCHAR(100) NOT NULL UNIQUE,
     description TEXT,
     slug VARCHAR(100) UNIQUE NOT NULL,
+    image_url VARCHAR(500),
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -170,6 +171,7 @@ CREATE TABLE service_categories (
     name VARCHAR(100) NOT NULL UNIQUE,
     description TEXT,
     slug VARCHAR(100) UNIQUE NOT NULL,
+    image_url VARCHAR(500),
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

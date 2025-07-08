@@ -187,6 +187,7 @@ export interface Database {
           name: string
           description: string | null
           slug: string
+          image_url: string | null
           is_active: boolean
           created_at: string
         }
@@ -195,6 +196,7 @@ export interface Database {
           name: string
           description?: string | null
           slug: string
+          image_url?: string | null
           is_active?: boolean
           created_at?: string
         }
@@ -203,6 +205,7 @@ export interface Database {
           name?: string
           description?: string | null
           slug?: string
+          image_url?: string | null
           is_active?: boolean
           created_at?: string
         }
@@ -305,6 +308,7 @@ export interface Database {
           name: string
           description: string | null
           slug: string
+          image_url: string | null
           is_active: boolean
           created_at: string
         }
@@ -313,6 +317,7 @@ export interface Database {
           name: string
           description?: string | null
           slug: string
+          image_url?: string | null
           is_active?: boolean
           created_at?: string
         }
@@ -321,6 +326,7 @@ export interface Database {
           name?: string
           description?: string | null
           slug?: string
+          image_url?: string | null
           is_active?: boolean
           created_at?: string
         }

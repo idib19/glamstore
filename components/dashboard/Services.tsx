@@ -1,9 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Folder, Settings } from 'lucide-react';
 import { servicesApi } from '../../lib/supabase';
 import ConfirmDialog from '../ConfirmDialog';
+import ServiceCategoriesTable from '../ServiceCategoriesTable';
+import AddServiceCategoryModal from '../AddServiceCategoryModal';
+import { Database } from '../../types/database';
+
+type ServiceCategory = Database['public']['Tables']['service_categories']['Row'];
 
 interface ServicesProps {
   onAddService: () => void;
@@ -11,8 +16,14 @@ interface ServicesProps {
 }
 
 export default function Services({ onAddService, onEditService }: ServicesProps) {
+  const [activeTab, setActiveTab] = useState<'services' | 'categories'>('services');
   const [services, setServices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAddServiceCategoryModalOpen, setIsAddServiceCategoryModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<ServiceCategory | null>(null);
+  const [categoryRefreshTrigger, setCategoryRefreshTrigger] = useState(0);
+  
+  // Confirmation dialog states
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -34,8 +45,10 @@ export default function Services({ onAddService, onEditService }: ServicesProps)
   };
 
   useEffect(() => {
-    loadServices();
-  }, []);
+    if (activeTab === 'services') {
+      loadServices();
+    }
+  }, [activeTab]);
 
   // Service actions
   const handleDeleteService = async (serviceId: string) => {
@@ -56,97 +69,165 @@ export default function Services({ onAddService, onEditService }: ServicesProps)
     });
   };
 
+  // Category actions
+  const handleCategoryAdded = () => {
+    setCategoryRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleEditCategory = (category: ServiceCategory) => {
+    setEditingCategory(category);
+    setIsAddServiceCategoryModalOpen(true);
+  };
+
+  const handleCloseCategoryModal = () => {
+    setIsAddServiceCategoryModalOpen(false);
+    setEditingCategory(null);
+  };
+
   return (
     <>
       <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-900">Gestion des Services</h3>
-          <button 
-            onClick={onAddService}
-            className="btn-primary"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Ajouter un Service
-          </button>
+        {/* Tabs */}
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8 px-6">
+            <button
+              onClick={() => setActiveTab('services')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                activeTab === 'services'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <Settings className="h-4 w-4" />
+              <span>Services</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('categories')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                activeTab === 'categories'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <Folder className="h-4 w-4" />
+              <span>Catégories</span>
+            </button>
+          </nav>
         </div>
+
+        {/* Tab Content */}
         <div className="p-6">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-pink"></div>
-              <span className="ml-2 text-gray-600">Chargement des services...</span>
+          {activeTab === 'services' ? (
+            // Services Management
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900">Gestion des Services</h3>
+                <button 
+                  onClick={onAddService}
+                  className="btn-primary"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter un Service
+                </button>
+              </div>
+              
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-pink"></div>
+                  <span className="ml-2 text-gray-600">Chargement des services...</span>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead>
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Service
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Catégorie
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Prix
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Durée
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {services.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                            Aucun service trouvé
+                          </td>
+                        </tr>
+                      ) : (
+                        services.map((service) => (
+                          <tr key={service.id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{service.name}</div>
+                              {service.description && (
+                                <div className="text-sm text-gray-500">{service.description}</div>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">
+                                {service.service_categories?.name || 'Non catégorisé'}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">{service.price}€</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">{service.duration_minutes} min</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <div className="flex space-x-2">
+                                <button 
+                                  onClick={() => onEditService(service)}
+                                  className="text-primary-pink hover:text-dark-pink transition-colors"
+                                  title="Modifier"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                                <button 
+                                  onClick={() => handleDeleteService(service.id)}
+                                  className="text-red-600 hover:text-red-900 transition-colors"
+                                  title="Supprimer"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Service
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Catégorie
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Prix
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Durée
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {services.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
-                        Aucun service trouvé
-                      </td>
-                    </tr>
-                  ) : (
-                    services.map((service) => (
-                      <tr key={service.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{service.name}</div>
-                          {service.description && (
-                            <div className="text-sm text-gray-500">{service.description}</div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {service.service_categories?.name || 'Non catégorisé'}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{service.price}€</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{service.duration_minutes} min</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2">
-                            <button 
-                              onClick={() => onEditService(service)}
-                              className="text-primary-pink hover:text-dark-pink transition-colors"
-                              title="Modifier"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteService(service.id)}
-                              className="text-red-600 hover:text-red-900 transition-colors"
-                              title="Supprimer"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+            // Service Categories Management
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900">Gestion des Catégories de Services</h3>
+                <button 
+                  onClick={() => setIsAddServiceCategoryModalOpen(true)}
+                  className="btn-primary"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter une Catégorie
+                </button>
+              </div>
+              <ServiceCategoriesTable 
+                refreshTrigger={categoryRefreshTrigger}
+                onEditCategory={handleEditCategory}
+              />
             </div>
           )}
         </div>
@@ -159,6 +240,14 @@ export default function Services({ onAddService, onEditService }: ServicesProps)
         onConfirm={confirmDialog.onConfirm}
         title={confirmDialog.title}
         message={confirmDialog.message}
+      />
+
+      {/* Add Service Category Modal */}
+      <AddServiceCategoryModal
+        isOpen={isAddServiceCategoryModalOpen}
+        onClose={handleCloseCategoryModal}
+        onCategoryAdded={handleCategoryAdded}
+        editingCategory={editingCategory}
       />
     </>
   );
