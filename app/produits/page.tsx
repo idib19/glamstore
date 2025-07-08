@@ -6,12 +6,29 @@ import Footer from '../../components/Footer';
 import Link from 'next/link';
 import { ShoppingBag, Star, Heart, Crown, Sparkles, Palette, CheckCircle } from 'lucide-react';
 import { productsApi, categoriesApi, supabase } from '../../lib/supabase';
-import { ProductRating } from '../../types/database';
+import { Database } from '../../types/database';
+
+// Use a type that includes images
+
+type ProductWithImages = Database['public']['Tables']['products']['Row'] & {
+  product_categories: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  product_images: {
+    id: string;
+    image_url: string;
+    alt_text: string | null;
+    is_primary: boolean;
+    sort_order: number;
+  }[];
+};
 
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([]);
-  const [products, setProducts] = useState<ProductRating[]>([]);
+  const [products, setProducts] = useState<ProductWithImages[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cart, setCart] = useState<{[key: string]: number}>({});
@@ -30,8 +47,8 @@ export default function ProductsPage() {
         ];
         setCategories(categoriesWithAll);
         
-        // Fetch products with ratings
-        const productsData = await productsApi.getWithRatings();
+        // Fetch products with images
+        const productsData = await productsApi.getAll();
         setProducts(productsData);
         
       } catch (err) {
@@ -60,7 +77,7 @@ export default function ProductsPage() {
           console.log('Product change detected:', payload);
           // Refresh products data
           try {
-            const productsData = await productsApi.getWithRatings();
+            const productsData = await productsApi.getAll();
             setProducts(productsData);
           } catch (err) {
             console.error('Error refreshing products:', err);
@@ -78,7 +95,7 @@ export default function ProductsPage() {
           console.log('Review change detected:', payload);
           // Refresh products data to update ratings
           try {
-            const productsData = await productsApi.getWithRatings();
+            const productsData = await productsApi.getAll();
             setProducts(productsData);
           } catch (err) {
             console.error('Error refreshing products:', err);
@@ -93,7 +110,7 @@ export default function ProductsPage() {
   }, []);
 
   const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === 'all' || product.category_slug === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || product.product_categories?.slug === selectedCategory;
     return matchesCategory;
   });
 
@@ -120,7 +137,7 @@ export default function ProductsPage() {
   const cartItemCount = Object.values(cart).reduce((sum, count) => sum + count, 0);
 
   // Helper function to get product features based on category
-  const getProductFeatures = (product: ProductRating) => {
+  const getProductFeatures = (product: ProductWithImages) => {
     const features: { [key: string]: string[] } = {
       'lip-gloss': [
         'Texture non collante',
@@ -140,7 +157,7 @@ export default function ProductsPage() {
       ]
     };
     
-    return features[product.category_slug || ''] || [
+    return features[product.product_categories?.slug || ''] || [
       'Qualité premium',
       'Résultats garantis',
       'Satisfaction client'
@@ -257,27 +274,36 @@ export default function ProductsPage() {
               <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all">
                 {/* Product Image */}
                 <div className="h-64 bg-gradient-to-br from-soft-pink to-light-pink flex items-center justify-center relative">
+                  {product.product_images && product.product_images.length > 0 ? (
+                    <img
+                      src={product.product_images[0].image_url}
+                      alt={product.product_images[0].alt_text || product.name}
+                      className="h-64 w-full object-cover rounded-t-2xl"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="text-center">
+                      <Palette className="h-16 w-16 text-primary-pink mx-auto mb-2" />
+                      <p className="text-gray-600 text-sm">Image du produit</p>
+                    </div>
+                  )}
                   {product.is_featured && (
                     <div className="absolute top-4 left-4 bg-primary-pink text-white px-3 py-1 rounded-full text-sm font-medium">
                       ✨ Populaire
                     </div>
                   )}
-                  <div className="text-center">
-                    <Palette className="h-16 w-16 text-primary-pink mx-auto mb-2" />
-                    <p className="text-gray-600 text-sm">Image du produit</p>
-                  </div>
                 </div>
 
                 {/* Product Info */}
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="text-xl font-bold text-gray-900">
-                      {product.name} – {product.brand || 'Queen\'s Glam'}
+                      {product.name} – {product.product_categories?.name || 'Queen\'s Glam'}
                     </h3>
                     <div className="flex items-center space-x-1">
                       <Star className="h-4 w-4 text-yellow-400 fill-current" />
                       <span className="text-sm text-gray-600">
-                        {product.average_rating || 'N/A'}
+                        N/A
                       </span>
                     </div>
                   </div>
@@ -345,7 +371,7 @@ export default function ProductsPage() {
                   {/* Reviews */}
                   <div className="mt-4 pt-4 border-t border-gray-100">
                     <p className="text-sm text-gray-500">
-                      {product.review_count || 0} avis clients
+                      0 avis clients
                     </p>
                   </div>
                 </div>

@@ -5,6 +5,7 @@ import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
 import AddProductModal from '../../components/AddProductModal';
 import ProductsTable from '../../components/ProductsTable';
+
 import { 
   Settings, 
   ShoppingBag, 
@@ -208,21 +209,24 @@ export default function DashboardPage() {
             )}
 
             {activeTab === 'products' && (
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-                  <h3 className="text-lg font-semibold text-gray-900">Gestion des Produits</h3>
-                  <button 
-                    onClick={() => setIsAddProductModalOpen(true)}
-                    className="btn-primary"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter un Produit
-                  </button>
-                </div>
-                <div className="p-6">
-                  <ProductsTable 
-                    refreshTrigger={refreshTrigger}
-                  />
+              <div className="space-y-6">
+                {/* Products Management */}
+                <div className="bg-white rounded-lg shadow-sm">
+                  <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <h3 className="text-lg font-semibold text-gray-900">Gestion des Produits</h3>
+                    <button 
+                      onClick={() => setIsAddProductModalOpen(true)}
+                      className="btn-primary"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter un Produit
+                    </button>
+                  </div>
+                  <div className="p-6">
+                    <ProductsTable 
+                      refreshTrigger={refreshTrigger}
+                    />
+                  </div>
                 </div>
               </div>
             )}

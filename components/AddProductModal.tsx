@@ -1,11 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Plus, AlertCircle, CheckCircle } from 'lucide-react';
-import { productsApi, categoriesApi } from '../lib/supabase';
+import { useState, useEffect, useRef } from 'react';
+import { X, Plus, AlertCircle, CheckCircle, Upload, Trash2 } from 'lucide-react';
+import { productsApi, categoriesApi, storageApi, productImagesApi } from '../lib/supabase';
 import { Database } from '../types/database';
 
 type ProductCategory = Database['public']['Tables']['product_categories']['Row'];
+
+interface ImageFile {
+  file: File;
+  preview: string;
+  name: string;
+}
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -18,6 +24,9 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<ImageFile[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -62,6 +71,15 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     }
   }, [isOpen]);
 
+  // Cleanup image previews on unmount
+  useEffect(() => {
+    return () => {
+      selectedImages.forEach(image => {
+        URL.revokeObjectURL(image.preview);
+      });
+    };
+  }, [selectedImages]);
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -80,6 +98,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     setErrors({});
     setError(null);
     setSuccess(false);
+    setSelectedImages([]);
   };
 
   const validateForm = () => {
@@ -107,6 +126,14 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
 
     if (!formData.sku.trim()) {
       newErrors.sku = 'Le SKU est requis';
+    }
+
+    // Validate images if any are selected
+    if (selectedImages.length > 0) {
+      const totalSize = selectedImages.reduce((total, image) => total + image.file.size, 0);
+      if (totalSize > 25 * 1024 * 1024) { // 25MB total limit
+        newErrors.images = 'La taille totale des images ne doit pas dépasser 25MB';
+      }
     }
 
     setErrors(newErrors);
@@ -140,7 +167,12 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
         is_active: true
       };
 
-      await productsApi.create(productData);
+      const newProduct = await productsApi.create(productData);
+      
+      // Upload images if any are selected
+      if (selectedImages.length > 0) {
+        await uploadImages(newProduct.id);
+      }
       
       setSuccess(true);
       
@@ -154,7 +186,12 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
 
     } catch (err) {
       console.error('Error creating product:', err);
-      setError('Erreur lors de la création du produit');
+      console.error('Error details:', {
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined,
+        error: err
+      });
+      setError(`Erreur lors de la création du produit: ${err instanceof Error ? err.message : 'Erreur inconnue'}`);
     } finally {
       setLoading(false);
     }
@@ -173,6 +210,147 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
         [field]: ''
       }));
     }
+  };
+
+  // Image handling functions
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const newImages: ImageFile[] = [];
+    
+    Array.from(files).forEach((file) => {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Veuillez sélectionner uniquement des fichiers image');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('La taille du fichier ne doit pas dépasser 5MB');
+        return;
+      }
+
+      const preview = URL.createObjectURL(file);
+      const name = `${Date.now()}-${file.name}`;
+      
+      newImages.push({
+        file,
+        preview,
+        name
+      });
+    });
+
+    setSelectedImages(prev => [...prev, ...newImages]);
+    setError(null);
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages(prev => {
+      const newImages = [...prev];
+      URL.revokeObjectURL(newImages[index].preview);
+      newImages.splice(index, 1);
+      return newImages;
+    });
+  };
+
+  const uploadImages = async (productId: string) => {
+    if (selectedImages.length === 0) return;
+
+    setUploadingImages(true);
+    
+    try {
+      for (let i = 0; i < selectedImages.length; i++) {
+        const image = selectedImages[i];
+        
+        // Upload to storage
+        await storageApi.uploadProductImage(image.file, image.name);
+        
+        // Get public URL
+        const publicUrl = storageApi.getPublicUrl(image.name);
+        
+        // Create image record in database
+        await productImagesApi.create({
+          product_id: productId,
+          image_url: publicUrl,
+          alt_text: `${formData.name} - Image ${i + 1}`,
+          is_primary: i === 0, // First image is primary
+          sort_order: i
+        });
+      }
+    } catch (err) {
+      console.error('Error uploading images:', err);
+      console.error('Error details:', {
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined,
+        error: err
+      });
+      
+      // Provide more specific error messages
+      let errorMessage = 'Erreur inconnue';
+      if (err instanceof Error) {
+        if (err.message.includes('Storage bucket error')) {
+          errorMessage = 'Erreur de configuration du stockage. Vérifiez que le bucket "produitsimages" existe.';
+        } else if (err.message.includes('Cannot access storage bucket')) {
+          errorMessage = 'Impossible d\'accéder au stockage. Vérifiez les permissions du bucket.';
+        } else if (err.message.includes('Upload failed')) {
+          errorMessage = 'Échec du téléchargement. Vérifiez la taille et le type de fichier.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      throw new Error(`Erreur lors du téléchargement des images: ${errorMessage}`);
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.currentTarget.classList.add('border-primary-pink', 'bg-pink-50');
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('border-primary-pink', 'bg-pink-50');
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('border-primary-pink', 'bg-pink-50');
+    
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    
+    if (imageFiles.length === 0) {
+      setError('Veuillez déposer uniquement des fichiers image');
+      return;
+    }
+
+    const newImages: ImageFile[] = [];
+    
+    imageFiles.forEach((file) => {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('La taille du fichier ne doit pas dépasser 5MB');
+        return;
+      }
+
+      const preview = URL.createObjectURL(file);
+      const name = `${Date.now()}-${file.name}`;
+      
+      newImages.push({
+        file,
+        preview,
+        name
+      });
+    });
+
+    setSelectedImages(prev => [...prev, ...newImages]);
+    setError(null);
   };
 
   if (!isOpen) return null;
@@ -394,6 +572,86 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
             </div>
           </div>
 
+          {/* Image Upload */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Images du Produit
+              </label>
+              {errors.images && (
+                <p className="mt-1 text-sm text-red-600">{errors.images}</p>
+              )}
+              <div className="space-y-4">
+                {/* File Input */}
+                <div className="flex items-center justify-center w-full">
+                  <label 
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                  >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Upload className="w-8 h-8 mb-2 text-gray-400" />
+                      <p className="mb-2 text-sm text-gray-500">
+                        <span className="font-semibold">Cliquez pour télécharger</span> ou glissez-déposez
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu&apos;à 5MB</p>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Selected Images Preview */}
+                {selectedImages.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium text-gray-700">
+                      Images sélectionnées ({selectedImages.length})
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {selectedImages.map((image, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={image.preview}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                            loading="lazy"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                          {index === 0 && (
+                            <div className="absolute top-1 left-1 bg-primary-pink text-white text-xs px-2 py-1 rounded">
+                              Principal
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload Progress */}
+                {uploadingImages && (
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-pink"></div>
+                    <span>Téléchargement des images...</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Options */}
           <div className="flex items-center space-x-6">
             <label className="flex items-center">
@@ -428,13 +686,13 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || uploadingImages}
               className="px-6 py-2 bg-primary-pink text-white rounded-lg hover:bg-dark-pink transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
             >
-              {loading ? (
+              {loading || uploadingImages ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Ajout en cours...
+                  {uploadingImages ? 'Téléchargement des images...' : 'Ajout en cours...'}
                 </>
               ) : (
                 <>

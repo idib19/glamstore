@@ -4,9 +4,94 @@ import { Database } from '../types/database'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+// Validate environment variables
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Supabase environment variables are not configured');
+}
+
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 
 // Helper functions for common operations
+
+// Storage API for image uploads
+export const storageApi = {
+  // Upload image to products bucket
+  // Upload image to products bucket
+  uploadProductImage: async (file: File, fileName: string) => {
+    const { data, error } = await supabase.storage
+      .from('produitsimages')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+    
+    if (error) {
+      // Provide specific error message for RLS policy issues
+      if (error.message.includes('row-level security policy')) {
+        throw new Error('Upload blocked by security policies. Please check bucket permissions in Supabase Dashboard.');
+      }
+      
+      throw new Error(`Upload failed: ${error.message || 'Unknown upload error'}`);
+    }
+    
+    return data;
+  },
+
+  // Get public URL for uploaded image
+  getPublicUrl: (path: string) => {
+    const { data } = supabase.storage
+      .from('produitsimages')
+      .getPublicUrl(path)
+    
+    return data.publicUrl
+  },
+
+  // Delete image from storage
+  deleteImage: async (path: string) => {
+    const { error } = await supabase.storage
+      .from('produitsimages')
+      .remove([path])
+    
+    if (error) throw error
+  }
+}
+
+// Product Images API
+export const productImagesApi = {
+  // Create product image record
+  create: async (imageData: Database['public']['Tables']['product_images']['Insert']) => {
+    const { data, error } = await supabase
+      .from('product_images')
+      .insert(imageData)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Get images for a product
+  getByProductId: async (productId: string) => {
+    const { data, error } = await supabase
+      .from('product_images')
+      .select('*')
+      .eq('product_id', productId)
+      .order('sort_order', { ascending: true })
+    
+    if (error) throw error
+    return data
+  },
+
+  // Delete product image
+  delete: async (id: string) => {
+    const { error } = await supabase
+      .from('product_images')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+  }
+}
 
 // Products
 export const productsApi = {
