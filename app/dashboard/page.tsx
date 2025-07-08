@@ -21,9 +21,10 @@ import Services from '../../components/dashboard/Services';
 import Orders from '../../components/dashboard/Orders';
 import Appointments from '../../components/dashboard/Appointments';
 import Customers from '../../components/dashboard/Customers';
+import Settings from '../../components/dashboard/Settings';
 
 import { 
-  Settings, 
+  Settings as SettingsIcon, 
   ShoppingBag, 
   Calendar, 
   Users, 
@@ -74,10 +75,11 @@ export default function DashboardPage() {
   const tabs = [
     { id: 'overview', name: 'Vue d\'ensemble', icon: Eye },
     { id: 'products', name: 'Produits', icon: Package },
-    { id: 'services', name: 'Services', icon: Settings },
+    { id: 'services', name: 'Services', icon: SettingsIcon },
     { id: 'orders', name: 'Commandes', icon: ShoppingBag },
     { id: 'appointments', name: 'Rendez-vous', icon: Calendar },
-    { id: 'customers', name: 'Clients', icon: Users }
+    { id: 'customers', name: 'Clients', icon: Users },
+    { id: 'settings', name: 'Paramètres', icon: SettingsIcon }
   ];
 
   // Load data functions
@@ -260,8 +262,11 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="btn-secondary">
-                <Settings className="h-4 w-4 mr-2" />
+              <button 
+                onClick={() => setActiveTab('settings')}
+                className="btn-secondary"
+              >
+                <SettingsIcon className="h-4 w-4 mr-2" />
                 Paramètres
               </button>
               <button 
@@ -333,6 +338,7 @@ export default function DashboardPage() {
             )}
 
             {activeTab === 'customers' && <Customers />}
+            {activeTab === 'settings' && <Settings />}
           </div>
         </div>
       </div>

@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   description: "Découvrez notre sélection de produits de beauté et services de bien-être",
   keywords: "beauté, bien-être, soins, produits cosmétiques, rendez-vous, France",
   authors: [{ name: "Queen&apos;s Glam" }],
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+  },
 };
 
 export const viewport: Viewport = {

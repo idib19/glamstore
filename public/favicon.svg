@@ -1,0 +1,19 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Outer circle -->
+  <circle cx="32" cy="32" r="30" fill="#ffffff" stroke="#C2187C" stroke-width="4"/>
+
+  <!-- Golden accent (sun / royal glow) -->
+  <circle cx="46" cy="20" r="6" fill="#F6D66B"/>
+
+  <!-- Crown -->
+  <path d="M20 12 L24 26 L32 18 L40 26 L44 12 Z" fill="#C2187C"/>
+
+  <!-- Face – minimal silhouette -->
+  <path d="M32 24c-6 0-10 5-10 11s4 11 10 11 10-5 10-11-4-11-10-11zm0 4
+           c3 0 5 3 5 7s-2 7-5 7-5-3-5-7 2-7 5-7z" fill="#C2187C"/>
+
+  <!-- Flowing hair strokes -->
+  <path d="M32 46c-6 3-12 8-12 8" stroke="#C2187C" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M32 46c6 3 12 8 12 8"  stroke="#C2187C" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>

@@ -61,6 +61,36 @@ CREATE TABLE users (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Store data table (for store settings and information)
+CREATE TABLE store_data (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    store_name VARCHAR(255) NOT NULL DEFAULT 'Queen''s Glam',
+    store_description TEXT,
+    address TEXT,
+    city VARCHAR(100),
+    postal_code VARCHAR(10),
+    country VARCHAR(100) DEFAULT 'France',
+    phone VARCHAR(20),
+    contact_email VARCHAR(255),
+    website_url VARCHAR(255),
+    facebook_url VARCHAR(255),
+    instagram_url VARCHAR(255),
+    twitter_url VARCHAR(255),
+    tiktok_url VARCHAR(255),
+    youtube_url VARCHAR(255),
+    linkedin_url VARCHAR(255),
+    opening_hours JSONB, -- Store opening hours for each day
+    availability_settings JSONB, -- Store availability date ranges for appointments
+    business_hours JSONB, -- Store business hours for each day
+    logo_url VARCHAR(500),
+    banner_url VARCHAR(500),
+    currency VARCHAR(3) DEFAULT 'EUR',
+    timezone VARCHAR(50) DEFAULT 'Europe/Paris',
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Customers table
 CREATE TABLE customers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -323,6 +353,9 @@ CREATE TABLE sales_analytics (
 -- INDEXES FOR PERFORMANCE
 -- ========================================
 
+-- Store data
+CREATE INDEX idx_store_data_active ON store_data(is_active);
+
 -- Products
 CREATE INDEX idx_products_category ON products(category_id);
 CREATE INDEX idx_products_active ON products(is_active);
@@ -441,6 +474,31 @@ CREATE POLICY "Public can view approved reviews" ON reviews
 -- ========================================
 -- SAMPLE DATA
 -- ========================================
+
+-- Insert default store data
+INSERT INTO store_data (
+    store_name, 
+    store_description, 
+    address, 
+    city, 
+    postal_code, 
+    phone, 
+    contact_email,
+    opening_hours,
+    availability_settings,
+    business_hours
+) VALUES (
+    'Queen''s Glam',
+    'Votre destination beauté premium pour des produits et services de qualité exceptionnelle',
+    '123 Rue de la Beauté',
+    'Paris',
+    '75001',
+    '+33 1 23 45 67 89',
+    'contact@queensglam.com',
+    '{"monday": {"open": "09:00", "close": "18:00"}, "tuesday": {"open": "09:00", "close": "18:00"}, "wednesday": {"open": "09:00", "close": "18:00"}, "thursday": {"open": "09:00", "close": "18:00"}, "friday": {"open": "09:00", "close": "18:00"}, "saturday": {"open": "10:00", "close": "17:00"}, "sunday": {"open": "closed", "close": "closed"}}',
+    '{"available_from": "2024-01-01", "available_until": "2024-12-31", "excluded_dates": [], "working_days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]}',
+    '{"monday": {"start": "09:00", "end": "18:00"}, "tuesday": {"start": "09:00", "end": "18:00"}, "wednesday": {"start": "09:00", "end": "18:00"}, "thursday": {"start": "09:00", "end": "18:00"}, "friday": {"start": "09:00", "end": "18:00"}, "saturday": {"start": "10:00", "end": "17:00"}, "sunday": {"start": "closed", "end": "closed"}}'
+);
 
 -- Insert sample product categories
 INSERT INTO product_categories (name, description, slug) VALUES

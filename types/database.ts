@@ -39,6 +39,92 @@ export interface Database {
           updated_at?: string
         }
       }
+      store_data: {
+        Row: {
+          id: string
+          store_name: string
+          store_description: string | null
+          address: string | null
+          city: string | null
+          postal_code: string | null
+          country: string
+          phone: string | null
+          contact_email: string | null
+          website_url: string | null
+          facebook_url: string | null
+          instagram_url: string | null
+          twitter_url: string | null
+          tiktok_url: string | null
+          youtube_url: string | null
+          linkedin_url: string | null
+          opening_hours: any | null
+          availability_settings: any | null
+          business_hours: any | null
+          logo_url: string | null
+          banner_url: string | null
+          currency: string
+          timezone: string
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          store_name?: string
+          store_description?: string | null
+          address?: string | null
+          city?: string | null
+          postal_code?: string | null
+          country?: string
+          phone?: string | null
+          contact_email?: string | null
+          website_url?: string | null
+          facebook_url?: string | null
+          instagram_url?: string | null
+          twitter_url?: string | null
+          tiktok_url?: string | null
+          youtube_url?: string | null
+          linkedin_url?: string | null
+          opening_hours?: any | null
+          availability_settings?: any | null
+          business_hours?: any | null
+          logo_url?: string | null
+          banner_url?: string | null
+          currency?: string
+          timezone?: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          store_name?: string
+          store_description?: string | null
+          address?: string | null
+          city?: string | null
+          postal_code?: string | null
+          country?: string
+          phone?: string | null
+          contact_email?: string | null
+          website_url?: string | null
+          facebook_url?: string | null
+          instagram_url?: string | null
+          twitter_url?: string | null
+          tiktok_url?: string | null
+          youtube_url?: string | null
+          linkedin_url?: string | null
+          opening_hours?: any | null
+          availability_settings?: any | null
+          business_hours?: any | null
+          logo_url?: string | null
+          banner_url?: string | null
+          currency?: string
+          timezone?: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
       customers: {
         Row: {
           id: string
@@ -726,6 +812,7 @@ export type Updates<T extends keyof Database['public']['Tables']> = Database['pu
 
 // Specific table types
 export type User = Tables<'users'>
+export type StoreData = Tables<'store_data'>
 export type Customer = Tables<'customers'>
 export type Product = Tables<'products'>
 export type Service = Tables<'services'>
