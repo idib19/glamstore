@@ -345,7 +345,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Queen's Glam Message */}
+              {/* Queen&apos;s Glam Message */}
       <section className="py-16 bg-gradient-to-r from-soft-pink to-light-pink">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="bg-white rounded-2xl p-12 shadow-lg">

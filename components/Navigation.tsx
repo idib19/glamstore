@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Menu, X, ShoppingBag, Calendar, Instagram, Facebook, Twitter } from 'lucide-react';
+import { useCart } from '../lib/cartContext';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { getCartItemCount } = useCart();
 
   const menuItems = [
     { name: 'Accueil', href: '/' },
@@ -29,10 +31,11 @@ const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center">
-              <span className="font-elegant text-2xl font-bold text-primary-pink">
-                GlamStore
-              </span>
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-primary-pink rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">QG</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">Queen&apos;s Glam</span>
             </Link>
           </div>
 
@@ -70,10 +73,15 @@ const Navigation = () => {
             {/* Action Buttons */}
             <Link
               href="/panier"
-              className="text-gray-700 hover:text-primary-pink transition-all"
+              className="text-gray-700 hover:text-primary-pink transition-all relative"
               aria-label="Panier"
             >
               <ShoppingBag className="h-6 w-6" />
+              {getCartItemCount() > 0 && (
+                <span className="absolute -top-2 -right-2 bg-primary-pink text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                  {getCartItemCount() > 99 ? '99+' : getCartItemCount()}
+                </span>
+              )}
             </Link>
             <Link
               href="/rendez-vous"
@@ -130,11 +138,16 @@ const Navigation = () => {
               <div className="mt-4 flex flex-col space-y-2">
                 <Link
                   href="/panier"
-                  className="btn-secondary text-center"
+                  className="btn-secondary text-center relative"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <ShoppingBag className="h-4 w-4 mr-2 inline" />
                   Panier
+                  {getCartItemCount() > 0 && (
+                    <span className="ml-2 bg-primary-pink text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                      {getCartItemCount() > 99 ? '99+' : getCartItemCount()}
+                    </span>
+                  )}
                 </Link>
                 <Link
                   href="/rendez-vous"

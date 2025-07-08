@@ -263,7 +263,7 @@ export default function AppointmentDetails({ customerEmail, customerPhone }: App
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex items-center text-sm text-gray-500">
                     <MapPin className="h-4 w-4 mr-1" />
-                    <span>Queen's Glam - Gatineau</span>
+                    <span>Queen&apos;s Glam - Gatineau</span>
                   </div>
                 </div>
               </div>

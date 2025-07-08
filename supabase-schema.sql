@@ -1,4 +1,4 @@
--- Queen's Glam Supabase Database Schema
+-- Queen&apos;s Glam Supabase Database Schema
 -- Comprehensive schema for beauty salon management system
 
 -- ========================================
@@ -469,19 +469,19 @@ INSERT INTO services (name, description, category_id, price, duration_minutes) V
 -- Insert sample products with detailed information matching the mock data
 INSERT INTO products (name, description, short_description, category_id, price, in_stock, is_featured, sku, brand) VALUES
 ('Lip Gloss Ultra Hydratant', 'Vegan et sans cruauté animale, il hydrate intensément tout en laissant un fini glowy et soyeux. Disponible en 10 teintes sublimes pour tous les tons de peau.', 'Fais briller tes lèvres avec notre gloss signature ✨', 
- (SELECT id FROM product_categories WHERE slug = 'lip-gloss'), 12.99, true, true, 'QG-LG-001', 'Queen''s Glam'),
+ (SELECT id FROM product_categories WHERE slug = 'lip-gloss'), 12.99, true, true, 'QG-LG-001', 'Queen&apos;s Glam'),
 ('Lip Gloss Fini Matte', 'Notre gamme matte offre une couleur intense et une tenue longue durée, sans dessécher les lèvres. Disponible en 2 teintes élégantes.', 'L''élégance du matte, sans compromis sur le confort.', 
- (SELECT id FROM product_categories WHERE slug = 'lip-gloss'), 12.99, true, false, 'QG-LG-002', 'Queen''s Glam'),
+ (SELECT id FROM product_categories WHERE slug = 'lip-gloss'), 12.99, true, false, 'QG-LG-002', 'Queen&apos;s Glam'),
 ('Lip Gloss Brillant', 'Effet miroir intense pour des lèvres ultra brillantes et glamour.', 'Brillance maximale pour un look impactant', 
- (SELECT id FROM product_categories WHERE slug = 'lip-gloss'), 14.99, true, false, 'QG-LG-003', 'Queen''s Glam'),
+ (SELECT id FROM product_categories WHERE slug = 'lip-gloss'), 14.99, true, false, 'QG-LG-003', 'Queen&apos;s Glam'),
 ('Masque à Lèvres', 'Ce masque à lèvres riche et fondant est un soin de nuit pour des lèvres réparées et repulpées au réveil. Disponible en 3 saveurs gourmandes : fraise, bonbon et vanille.', 'Ton rituel self-care du soir commence ici.', 
- (SELECT id FROM product_categories WHERE slug = 'masques-levres'), 12.99, true, true, 'QG-ML-001', 'Queen''s Glam'),
+ (SELECT id FROM product_categories WHERE slug = 'masques-levres'), 12.99, true, true, 'QG-ML-001', 'Queen&apos;s Glam'),
 ('Masque à Lèvres Exfoliant', 'Masque exfoliant doux pour éliminer les peaux mortes et révéler des lèvres plus douces.', 'Exfoliation douce pour des lèvres parfaites', 
- (SELECT id FROM product_categories WHERE slug = 'masques-levres'), 15.99, true, false, 'QG-ML-002', 'Queen''s Glam'),
+ (SELECT id FROM product_categories WHERE slug = 'masques-levres'), 15.99, true, false, 'QG-ML-002', 'Queen&apos;s Glam'),
 ('Perruques Naturelles Premium', 'Confort, élégance et durabilité réunis dans des modèles pensés pour t''accompagner en toute confiance. Disponibles en plusieurs textures : lisse, ondulée, bouclée, kinky, afro etc. Options : Lace frontale, sans colle, avec colle, personnalisables à la demande.', 'Révèle ton style avec nos perruques 100 % cheveux naturels.', 
- (SELECT id FROM product_categories WHERE slug = 'perruques'), NULL, true, true, 'QG-PN-001', 'Queen''s Glam'),
+ (SELECT id FROM product_categories WHERE slug = 'perruques'), NULL, true, true, 'QG-PN-001', 'Queen&apos;s Glam'),
 ('Perruques Lace Front', 'Perruques avec lace frontale pour un rendu ultra naturel et une pose facile.', 'Lace frontale pour un rendu naturel parfait', 
- (SELECT id FROM product_categories WHERE slug = 'perruques'), NULL, true, false, 'QG-PN-002', 'Queen''s Glam');
+ (SELECT id FROM product_categories WHERE slug = 'perruques'), NULL, true, false, 'QG-PN-002', 'Queen&apos;s Glam');
 
 -- Insert sample reviews for products
 INSERT INTO reviews (customer_name, product_id, rating, title, comment, is_verified, is_approved) VALUES

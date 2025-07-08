@@ -1,35 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
-import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, CheckCircle } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { useCart } from '../../lib/cartContext';
+import { emailService } from '../../lib/emailService';
 
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: 'Crème Hydratante Intense',
-      price: 28.50,
-      quantity: 2,
-      image: '/api/placeholder/100/100'
-    },
-    {
-      id: 3,
-      name: 'Fond de Teint Lumineux',
-      price: 32.00,
-      quantity: 1,
-      image: '/api/placeholder/100/100'
-    },
-    {
-      id: 8,
-      name: 'Pinceaux de Maquillage',
-      price: 35.00,
-      quantity: 1,
-      image: '/api/placeholder/100/100'
-    }
-  ]);
+  const { 
+    state, 
+    removeFromCart, 
+    updateQuantity, 
+    getCartTotal, 
+    getCartItemCount, 
+    createOrder 
+  } = useCart();
 
   const [checkoutData, setCheckoutData] = useState({
     email: '',
@@ -39,33 +26,15 @@ export default function CartPage() {
     address: '',
     city: '',
     postalCode: '',
-    country: 'France'
+    country: 'France',
+    notes: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [orderDetails, setOrderDetails] = useState<any>(null);
 
-  const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeItem(id);
-      return;
-    }
-    setCartItems(prev => 
-      prev.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
-  };
-
-  const removeItem = (id: number) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * 0.20; // 20% TVA
-  const total = subtotal + tax;
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setCheckoutData(prev => ({
       ...prev,
@@ -77,30 +46,46 @@ export default function CartPage() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    
-    // Reset cart after 5 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setCartItems([]);
-      setCheckoutData({
-        email: '',
-        phone: '',
-        firstName: '',
-        lastName: '',
-        address: '',
-        city: '',
-        postalCode: '',
-        country: 'France'
-      });
-    }, 5000);
+    try {
+      // Create order in database
+      const order = await createOrder(checkoutData);
+      setOrderDetails(order);
+
+      // Send confirmation email
+      try {
+        await emailService.sendOrderConfirmation({
+          customerName: `${checkoutData.firstName} ${checkoutData.lastName}`,
+          customerEmail: checkoutData.email,
+          orderNumber: order.order_number,
+          orderTotal: order.total_amount,
+          orderItems: state.items.map(item => ({
+            name: item.product.name,
+            quantity: item.quantity,
+            price: item.product.price,
+            total: item.product.price * item.quantity
+          })),
+          shippingAddress: `${checkoutData.address}, ${checkoutData.postalCode} ${checkoutData.city}, ${checkoutData.country}`
+        });
+      } catch (emailError) {
+        console.error('Error sending confirmation email:', emailError);
+        // Don't fail the order if email fails
+      }
+
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Error creating order:', error);
+      alert('Erreur lors de la création de la commande. Veuillez réessayer.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  if (isSubmitted) {
+  const subtotal = getCartTotal();
+  const tax = subtotal * 0.20; // 20% TVA
+  const shipping = subtotal >= 50 ? 0 : 5.99; // Free shipping over 50€
+  const total = subtotal + tax + shipping;
+
+  if (isSubmitted && orderDetails) {
     return (
       <div className="min-h-screen bg-white">
         <Navigation />
@@ -120,8 +105,9 @@ export default function CartPage() {
               <div className="bg-white rounded-lg p-6 max-w-md mx-auto">
                 <h3 className="font-semibold text-gray-900 mb-3">Récapitulatif :</h3>
                 <div className="text-left space-y-2 text-sm">
-                  <p><strong>Total :</strong> {total.toFixed(2)}€</p>
-                  <p><strong>Articles :</strong> {cartItems.reduce((sum, item) => sum + item.quantity, 0)}</p>
+                  <p><strong>Numéro de commande :</strong> {orderDetails.order_number}</p>
+                  <p><strong>Total :</strong> {orderDetails.total_amount.toFixed(2)}€</p>
+                  <p><strong>Articles :</strong> {getCartItemCount()}</p>
                   <p><strong>Email :</strong> {checkoutData.email}</p>
                 </div>
               </div>
@@ -138,7 +124,7 @@ export default function CartPage() {
     );
   }
 
-  if (cartItems.length === 0) {
+  if (state.items.length === 0) {
     return (
       <div className="min-h-screen bg-white">
         <Navigation />
@@ -188,32 +174,43 @@ export default function CartPage() {
             {/* Cart Items */}
             <div className="lg:col-span-2">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                Articles ({cartItems.reduce((sum, item) => sum + item.quantity, 0)})
+                Articles ({getCartItemCount()})
               </h2>
               
               <div className="space-y-4">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-6">
+                {state.items.map((item) => (
+                  <div key={item.product.id} className="bg-white border border-gray-200 rounded-lg p-6">
                     <div className="flex items-center space-x-4">
                       <div className="w-20 h-20 bg-gradient-to-br from-soft-pink to-light-pink rounded-lg flex items-center justify-center">
-                        <ShoppingBag className="h-8 w-8 text-primary-pink" />
+                        {item.product.product_images && item.product.product_images.length > 0 ? (
+                          <img 
+                            src={item.product.product_images[0].image_url} 
+                            alt={item.product.name}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        ) : (
+                          <ShoppingBag className="h-8 w-8 text-primary-pink" />
+                        )}
                       </div>
                       
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                        <p className="text-primary-pink font-bold">{item.price.toFixed(2)}€</p>
+                        <h3 className="font-semibold text-gray-900">{item.product.name}</h3>
+                        <p className="text-sm text-gray-600 mb-1">
+                          {item.product.product_categories?.name}
+                        </p>
+                        <p className="text-primary-pink font-bold">{item.product.price.toFixed(2)}€</p>
                       </div>
                       
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                           className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-all"
                         >
                           <Minus className="h-4 w-4" />
                         </button>
                         <span className="w-12 text-center font-semibold">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                           className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-all"
                         >
                           <Plus className="h-4 w-4" />
@@ -221,9 +218,9 @@ export default function CartPage() {
                       </div>
                       
                       <div className="text-right">
-                        <p className="font-bold text-gray-900">{(item.price * item.quantity).toFixed(2)}€</p>
+                        <p className="font-bold text-gray-900">{(item.product.price * item.quantity).toFixed(2)}€</p>
                         <button
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeFromCart(item.product.id)}
                           className="text-red-500 hover:text-red-700 transition-all mt-1"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -251,6 +248,10 @@ export default function CartPage() {
                     <span>TVA (20%) :</span>
                     <span>{tax.toFixed(2)}€</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span>Livraison :</span>
+                    <span>{shipping === 0 ? 'Gratuite' : `${shipping.toFixed(2)}€`}</span>
+                  </div>
                   <div className="border-t border-gray-300 pt-3">
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total :</span>
@@ -258,6 +259,15 @@ export default function CartPage() {
                     </div>
                   </div>
                 </div>
+
+                {subtotal < 50 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <p className="text-sm text-blue-800">
+                      <strong>Livraison gratuite</strong> dès 50€ d&apos;achat ! 
+                      Il vous manque {(50 - subtotal).toFixed(2)}€.
+                    </p>
+                  </div>
+                )}
 
                 <p className="text-sm text-gray-600 mb-4">
                   * Livraison gratuite dès 50€ d&apos;achat
@@ -275,6 +285,15 @@ export default function CartPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               Informations de Livraison
             </h2>
+            
+            {state.error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center">
+                  <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+                  <p className="text-red-800">{state.error}</p>
+                </div>
+              </div>
+            )}
             
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -411,6 +430,21 @@ export default function CartPage() {
                 </div>
               </div>
 
+              <div>
+                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+                  Notes (optionnel)
+                </label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  value={checkoutData.notes}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className="form-input"
+                  placeholder="Informations supplémentaires pour votre commande..."
+                />
+              </div>
+
               <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="font-semibold text-gray-900 mb-2">Informations importantes :</h3>
                 <ul className="text-sm text-gray-600 space-y-1">
@@ -424,14 +458,14 @@ export default function CartPage() {
               <div className="text-center">
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || state.isLoading}
                   className={`btn-primary text-lg px-8 py-4 flex items-center justify-center mx-auto ${
-                    isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                    (isSubmitting || state.isLoading) ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
-                  {isSubmitting ? (
+                  {(isSubmitting || state.isLoading) ? (
                     <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                       Traitement en cours...
                     </>
                   ) : (

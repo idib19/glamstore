@@ -704,7 +704,18 @@ export const ordersApi = {
           product_sku,
           quantity,
           unit_price,
-          total_price
+          total_price,
+          products (
+            id,
+            name,
+            product_images (
+              id,
+              image_url,
+              alt_text,
+              is_primary,
+              sort_order
+            )
+          )
         )
       `)
       .order('created_at', { ascending: false })
@@ -733,7 +744,18 @@ export const ordersApi = {
           product_sku,
           quantity,
           unit_price,
-          total_price
+          total_price,
+          products (
+            id,
+            name,
+            product_images (
+              id,
+              image_url,
+              alt_text,
+              is_primary,
+              sort_order
+            )
+          )
         )
       `)
       .eq('id', id)

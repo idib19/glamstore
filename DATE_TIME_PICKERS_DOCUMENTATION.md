@@ -2,7 +2,7 @@
 
 ## Overview
 
-Custom, user-friendly date and time picker components designed specifically for the Queen's Glam appointment booking system. These components provide an intuitive and beautiful interface for selecting appointment dates and times.
+Custom, user-friendly date and time picker components designed specifically for the Queen&apos;s Glam appointment booking system. These components provide an intuitive and beautiful interface for selecting appointment dates and times.
 
 ## Components
 
@@ -278,7 +278,7 @@ Both components accept `className` props for additional styling:
 
 ## Conclusion
 
-The DatePicker and TimePicker components provide a modern, user-friendly interface for appointment scheduling. They are fully integrated with the Queen's Glam booking system and offer:
+The DatePicker and TimePicker components provide a modern, user-friendly interface for appointment scheduling. They are fully integrated with the Queen&apos;s Glam booking system and offer:
 
 - ✅ Beautiful, intuitive design
 - ✅ Full accessibility support

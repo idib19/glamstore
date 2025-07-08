@@ -65,7 +65,7 @@ export default function LoginForm({ onLogin, onClose }: LoginFormProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-primary-pink"
-                placeholder="admin@glamstore.com"
+                placeholder="admin@queensglam.com"
                 required
               />
             </div>

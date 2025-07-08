@@ -1,6 +1,6 @@
-# Queen's Glam Setup Guide
+# Queen&apos;s Glam Setup Guide
 
-This guide will help you set up the Queen's Glam beauty salon management system with Supabase.
+This guide will help you set up the Queen&apos;s Glam beauty salon management system with Supabase.
 
 ## 🚀 Quick Start
 
@@ -23,7 +23,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 # SMTP_PASS=your_app_password
 
 # App Configuration
-NEXT_PUBLIC_APP_NAME="Queen's Glam"
+NEXT_PUBLIC_APP_NAME="Queen&apos;s Glam"
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 

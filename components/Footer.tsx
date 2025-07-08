@@ -35,7 +35,12 @@ const Footer = () => {
           <div className="lg:col-span-1">
             <div className="mb-6">
               <h3 className="font-elegant text-2xl font-bold text-primary-pink mb-4">
-                GlamStore
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-primary-pink rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">QG</span>
+                  </div>
+                  <span className="text-xl font-bold text-gray-900">Queen&apos;s Glam</span>
+                </div>
               </h3>
               <p className="text-gray-300 text-sm leading-relaxed">
                 Votre destination beauté et bien-être. Nous vous accompagnons dans votre quête de beauté naturelle et authentique.
@@ -108,11 +113,9 @@ const Footer = () => {
                   +33 1 23 45 67 89
                 </span>
               </div>
-              <div className="flex items-center space-x-3">
-                <Mail className="h-4 w-4 text-primary-pink" />
-                <span className="text-gray-300 text-sm">
-                  contact@glamstore.fr
-                </span>
+              <div className="flex items-center space-x-2">
+                <Mail className="h-5 w-5 text-primary-pink" />
+                <span>contact@queensglam.fr</span>
               </div>
             </div>
 
@@ -138,7 +141,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © {currentYear} GlamStore. Tous droits réservés.
+              © {currentYear} Queen&apos;s Glam. Tous droits réservés.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link href="/mentions-legales" className="text-gray-400 hover:text-primary-pink text-sm">

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ShoppingBag, Star, Heart, Crown, Sparkles, Palette, CheckCircle } from 'lucide-react';
 import { productsApi, categoriesApi, supabase } from '../../lib/supabase';
 import { Database } from '../../types/database';
+import { useCart } from '../../lib/cartContext';
 
 // Use a type that includes images
 
@@ -31,7 +32,9 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<ProductWithImages[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cart, setCart] = useState<{[key: string]: number}>({});
+  
+  // Use cart context instead of local state
+  const { state: cartState, addToCart, removeFromCart, getCartItemCount } = useCart();
 
   // Fetch categories and products on component mount
   useEffect(() => {
@@ -114,27 +117,11 @@ export default function ProductsPage() {
     return matchesCategory;
   });
 
-  const addToCart = (productId: string) => {
-    setCart(prev => ({
-      ...prev,
-      [productId]: (prev[productId] || 0) + 1
-    }));
+  // Helper function to get cart quantity for a product
+  const getCartQuantity = (productId: string) => {
+    const cartItem = cartState.items.find(item => item.product.id === productId);
+    return cartItem ? cartItem.quantity : 0;
   };
-
-  const removeFromCart = (productId: string) => {
-    setCart(prev => {
-      const newCart = { ...prev };
-      if (newCart[productId] > 0) {
-        newCart[productId] -= 1;
-        if (newCart[productId] === 0) {
-          delete newCart[productId];
-        }
-      }
-      return newCart;
-    });
-  };
-
-  const cartItemCount = Object.values(cart).reduce((sum, count) => sum + count, 0);
 
   // Helper function to get product features based on category
   const getProductFeatures = (product: ProductWithImages) => {
@@ -255,12 +242,14 @@ export default function ProductsPage() {
 
             {/* Cart Summary */}
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-soft-pink px-4 py-2 rounded-lg">
-                <ShoppingBag className="h-5 w-5 text-primary-pink" />
-                <span className="text-gray-700 font-medium">
-                  {cartItemCount} article{cartItemCount !== 1 ? 's' : ''}
-                </span>
-              </div>
+              <Link href="/panier">
+                <div className="flex items-center space-x-2 bg-soft-pink px-4 py-2 rounded-lg hover:bg-primary-pink hover:text-white transition-colors cursor-pointer">
+                  <ShoppingBag className="h-5 w-5 text-primary-pink" />
+                  <span className="text-gray-700 font-medium">
+                    {getCartItemCount()} Precommander vos articles {getCartItemCount() !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </Link>
             </div>
           </div>
         </div>
@@ -270,113 +259,117 @@ export default function ProductsPage() {
       <section className="py-16 bg-pale-pink">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-            {filteredProducts.map((product) => (
-              <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all">
-                {/* Product Image */}
-                <div className="h-64 bg-gradient-to-br from-soft-pink to-light-pink flex items-center justify-center relative">
-                  {product.product_images && product.product_images.length > 0 ? (
-                    <img
-                      src={product.product_images[0].image_url}
-                      alt={product.product_images[0].alt_text || product.name}
-                      className="h-64 w-full object-cover rounded-t-2xl"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="text-center">
-                      <Palette className="h-16 w-16 text-primary-pink mx-auto mb-2" />
-                      <p className="text-gray-600 text-sm">Image du produit</p>
-                    </div>
-                  )}
-                  {product.is_featured && (
-                    <div className="absolute top-4 left-4 bg-primary-pink text-white px-3 py-1 rounded-full text-sm font-medium">
-                      ✨ Populaire
-                    </div>
-                  )}
-                </div>
-
-                {/* Product Info */}
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-xl font-bold text-gray-900">
-                      {product.name} – {product.product_categories?.name || 'Queen\'s Glam'}
-                    </h3>
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-sm text-gray-600">
-                        N/A
-                      </span>
-                    </div>
+            {filteredProducts.map((product) => {
+              const cartQuantity = getCartQuantity(product.id);
+              
+              return (
+                <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all">
+                  {/* Product Image */}
+                  <div className="h-64 bg-gradient-to-br from-soft-pink to-light-pink flex items-center justify-center relative">
+                    {product.product_images && product.product_images.length > 0 ? (
+                      <img
+                        src={product.product_images[0].image_url}
+                        alt={product.product_images[0].alt_text || product.name}
+                        className="h-64 w-full object-cover rounded-t-2xl"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <Palette className="h-16 w-16 text-primary-pink mx-auto mb-2" />
+                        <p className="text-gray-600 text-sm">Image du produit</p>
+                      </div>
+                    )}
+                    {product.is_featured && (
+                      <div className="absolute top-4 left-4 bg-primary-pink text-white px-3 py-1 rounded-full text-sm font-medium">
+                        ✨ Populaire
+                      </div>
+                    )}
                   </div>
 
-                  <p className="text-gray-700 mb-4 leading-relaxed">
-                    {product.short_description}
-                  </p>
-
-                  <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-                    {product.description}
-                  </p>
-
-                  {/* Features */}
-                  <div className="mb-6">
-                    <div className="grid grid-cols-1 gap-2">
-                      {getProductFeatures(product).map((feature, index) => (
-                        <div key={index} className="flex items-center space-x-2">
-                          <CheckCircle className="h-4 w-4 text-primary-pink flex-shrink-0" />
-                          <span className="text-sm text-gray-600">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Price and Actions */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      {product.price ? (
-                        <span className="text-2xl font-bold text-primary-pink">
-                          {product.price.toFixed(2)} €
+                  {/* Product Info */}
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {product.name} – {product.product_categories?.name || 'Queen&apos;s Glam'}
+                      </h3>
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="text-sm text-gray-600">
+                          N/A
                         </span>
-                      ) : (
-                        <span className="text-lg font-semibold text-gray-700">
-                          Prix sur demande
-                        </span>
-                      )}
+                      </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                      {cart[product.id] > 0 && (
-                        <button
-                          onClick={() => removeFromCart(product.id)}
-                          className="bg-gray-200 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-all"
-                        >
-                          -
-                        </button>
-                      )}
-                      
-                      {cart[product.id] > 0 && (
-                        <span className="text-gray-700 font-medium min-w-[20px] text-center">
-                          {cart[product.id]}
-                        </span>
-                      )}
-                      
-                      <button
-                        onClick={() => addToCart(product.id)}
-                        className="bg-primary-pink text-white px-4 py-2 rounded-lg font-medium hover:bg-dark-pink transition-all flex items-center space-x-2"
-                      >
-                        <ShoppingBag className="h-4 w-4" />
-                        <span>Ajouter</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Reviews */}
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <p className="text-sm text-gray-500">
-                      0 avis clients
+                    <p className="text-gray-700 mb-4 leading-relaxed">
+                      {product.short_description}
                     </p>
+
+                    <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                      {product.description}
+                    </p>
+
+                    {/* Features */}
+                    <div className="mb-6">
+                      <div className="grid grid-cols-1 gap-2">
+                        {getProductFeatures(product).map((feature, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <CheckCircle className="h-4 w-4 text-primary-pink flex-shrink-0" />
+                            <span className="text-sm text-gray-600">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Price and Actions */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        {product.price ? (
+                          <span className="text-2xl font-bold text-primary-pink">
+                            {product.price.toFixed(2)} €
+                          </span>
+                        ) : (
+                          <span className="text-lg font-semibold text-gray-700">
+                            Prix sur demande
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        {cartQuantity > 0 && (
+                          <button
+                            onClick={() => removeFromCart(product.id)}
+                            className="bg-gray-200 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-all"
+                          >
+                            -
+                          </button>
+                        )}
+                        
+                        {cartQuantity > 0 && (
+                          <span className="text-gray-700 font-medium min-w-[20px] text-center">
+                            {cartQuantity}
+                          </span>
+                        )}
+                        
+                        <button
+                          onClick={() => addToCart(product, 1)}
+                          className="bg-primary-pink text-white px-4 py-2 rounded-lg font-medium hover:bg-dark-pink transition-all flex items-center space-x-2"
+                        >
+                          <ShoppingBag className="h-4 w-4" />
+                          <span>Ajouter</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Reviews */}
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <p className="text-sm text-gray-500">
+                        0 avis clients
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {filteredProducts.length === 0 && (

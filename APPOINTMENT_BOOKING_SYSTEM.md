@@ -2,7 +2,7 @@
 
 ## Overview
 
-The appointment booking system for Queen's Glam beauty salon has been fully implemented with comprehensive features including real-time availability checking, customer management, email notifications, and database synchronization.
+The appointment booking system for Queen&apos;s Glam beauty salon has been fully implemented with comprehensive features including real-time availability checking, customer management, email notifications, and database synchronization.
 
 ## Features Implemented
 
@@ -28,7 +28,7 @@ The appointment booking system for Queen's Glam beauty salon has been fully impl
 - Appointment confirmation emails with beautiful HTML templates
 - Appointment reminder emails
 - Cancellation notification emails
-- Professional branding with Queen's Glam styling
+- Professional branding with Queen&apos;s Glam styling
 
 ### 5. Database Integration
 - Full CRUD operations for appointments

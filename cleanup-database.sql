@@ -1,4 +1,4 @@
--- Queen's Glam Database Cleanup Script
+-- Queen&apos;s Glam Database Cleanup Script
 -- Run this script to completely clean the database before running the main schema
 
 -- ========================================

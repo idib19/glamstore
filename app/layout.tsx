@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../lib/auth";
+import { CartProvider } from "../lib/cartContext";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -14,10 +15,10 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "GlamStore - Beauté & Bien-être",
-  description: "Votre destination beauté et bien-être. Découvrez nos services et produits de qualité pour prendre soin de vous.",
+  title: "Queen&apos;s Glam - Beauté & Bien-être",
+  description: "Découvrez notre sélection de produits de beauté et services de bien-être",
   keywords: "beauté, bien-être, soins, produits cosmétiques, rendez-vous, France",
-  authors: [{ name: "GlamStore" }],
+  authors: [{ name: "Queen&apos;s Glam" }],
 };
 
 export const viewport: Viewport = {
@@ -37,7 +38,9 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
         <AuthProvider>
-          {children}
+          <CartProvider>
+            {children}
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

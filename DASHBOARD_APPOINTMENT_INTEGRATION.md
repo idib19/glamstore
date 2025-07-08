@@ -323,4 +323,4 @@ The dashboard appointment integration provides:
 - ✅ **Performance**: Optimized data loading and display
 - ✅ **Scalability**: Ready for additional features
 
-The dashboard now serves as a comprehensive management tool for Queen's Glam, providing administrators with accurate, real-time information about all aspects of the business. 
+The dashboard now serves as a comprehensive management tool for Queen&apos;s Glam, providing administrators with accurate, real-time information about all aspects of the business. 

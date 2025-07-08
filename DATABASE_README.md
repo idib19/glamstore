@@ -1,6 +1,6 @@
-# Queen's Glam Database Schema
+# Queen&apos;s Glam Database Schema
 
-This document describes the comprehensive Supabase database schema for the Queen's Glam beauty salon management system.
+This document describes the comprehensive Supabase database schema for the Queen&apos;s Glam beauty salon management system.
 
 ## 🏗️ Database Overview
 
@@ -187,7 +187,7 @@ import { productsApi } from '@/lib/supabase'
 
 const newProduct = await productsApi.create({
   name: 'Lip Gloss Ultra-hydratants',
-  description: 'Lip gloss brillants et ultra-hydratants signés Queen\'s Glam',
+  description: 'Lip gloss brillants et ultra-hydratants signés Queen&apos;s Glam',
   category_id: 'category-uuid',
   price: 28.50,
   stock_quantity: 50,
@@ -348,4 +348,4 @@ The database schema supports all the business requirements mentioned:
 - Inventory reports
 - Performance metrics
 
-This comprehensive database schema provides a solid foundation for managing all aspects of the Queen's Glam beauty salon business with full type safety and modern development practices. 
+This comprehensive database schema provides a solid foundation for managing all aspects of the Queen&apos;s Glam beauty salon business with full type safety and modern development practices. 

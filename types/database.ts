@@ -1,4 +1,4 @@
-// TypeScript types for Queen's Glam Supabase Database
+// TypeScript types for Queen&apos;s Glam Supabase Database
 // Generated to match the database schema
 
 export interface Database {

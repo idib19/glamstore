@@ -19,12 +19,26 @@ interface AppointmentEmailData {
   appointmentId: string;
 }
 
+interface OrderEmailData {
+  customerName: string;
+  customerEmail: string;
+  orderNumber: string;
+  orderTotal: number;
+  orderItems: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+    total: number;
+  }>;
+  shippingAddress: string;
+}
+
 export const emailService = {
   // Send appointment confirmation email
   sendAppointmentConfirmation: async (data: AppointmentEmailData) => {
     const emailData: EmailData = {
       to: data.customerEmail,
-      subject: 'Confirmation de votre rendez-vous - Queen\'s Glam',
+      subject: 'Confirmation de votre rendez-vous - Queen&apos;s Glam',
       html: generateAppointmentConfirmationHTML(data),
       text: generateAppointmentConfirmationText(data)
     };
@@ -36,7 +50,7 @@ export const emailService = {
   sendAppointmentReminder: async (data: AppointmentEmailData) => {
     const emailData: EmailData = {
       to: data.customerEmail,
-      subject: 'Rappel de votre rendez-vous - Queen\'s Glam',
+      subject: 'Rappel de votre rendez-vous - Queen&apos;s Glam',
       html: generateAppointmentReminderHTML(data),
       text: generateAppointmentReminderText(data)
     };
@@ -48,9 +62,21 @@ export const emailService = {
   sendAppointmentCancellation: async (data: AppointmentEmailData) => {
     const emailData: EmailData = {
       to: data.customerEmail,
-      subject: 'Annulation de votre rendez-vous - Queen\'s Glam',
+      subject: 'Annulation de votre rendez-vous - Queen&apos;s Glam',
       html: generateAppointmentCancellationHTML(data),
       text: generateAppointmentCancellationText(data)
+    };
+
+    return await sendEmail(emailData);
+  },
+
+  // Send order confirmation email
+  sendOrderConfirmation: async (data: OrderEmailData) => {
+    const emailData: EmailData = {
+      to: data.customerEmail,
+      subject: 'Confirmation de votre commande - Queen&apos;s Glam',
+      html: generateOrderConfirmationHTML(data),
+      text: generateOrderConfirmationText(data)
     };
 
     return await sendEmail(emailData);
@@ -109,13 +135,13 @@ const generateAppointmentConfirmationHTML = (data: AppointmentEmailData): string
       <div class="container">
         <div class="header">
           <h1>✨ Rendez-vous Confirmé !</h1>
-          <p>Queen's Glam - Votre moment beauté</p>
+          <p>Queen&apos;s Glam - Votre moment beauté</p>
         </div>
         
         <div class="content">
           <p>Bonjour ${data.customerName},</p>
           
-          <p>Nous sommes ravis de confirmer votre rendez-vous chez Queen's Glam !</p>
+          <p>Nous sommes ravis de confirmer votre rendez-vous chez Queen&apos;s Glam !</p>
           
           <div class="appointment-details">
             <h3>📅 Détails de votre rendez-vous</h3>
@@ -145,7 +171,7 @@ const generateAppointmentConfirmationHTML = (data: AppointmentEmailData): string
             </div>
           </div>
           
-          <p><strong>📍 Adresse :</strong> Queen's Glam, Gatineau (adresse précise communiquée par SMS)</p>
+          <p><strong>📍 Adresse :</strong> Queen&apos;s Glam, Gatineau (adresse précise communiquée par SMS)</p>
           
           <p><strong>📱 Contact :</strong> Pour toute modification ou question, contactez-nous par téléphone ou email.</p>
           
@@ -155,11 +181,11 @@ const generateAppointmentConfirmationHTML = (data: AppointmentEmailData): string
           
           <p>Nous avons hâte de vous accueillir pour votre moment glam !</p>
           
-          <p>Cordialement,<br>L'équipe Queen's Glam</p>
+          <p>Cordialement,<br>L&apos;équipe Queen&apos;s Glam</p>
         </div>
         
         <div class="footer">
-          <p>Queen's Glam - Votre institut de beauté à Gatineau</p>
+          <p>Queen&apos;s Glam - Votre institut de beauté à Gatineau</p>
           <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
         </div>
       </div>
@@ -195,7 +221,7 @@ const generateAppointmentReminderHTML = (data: AppointmentEmailData): string => 
       <div class="container">
         <div class="header">
           <h1>⏰ Rappel de rendez-vous</h1>
-          <p>Queen's Glam - Votre moment beauté</p>
+          <p>Queen&apos;s Glam - Votre moment beauté</p>
         </div>
         
         <div class="content">
@@ -210,11 +236,11 @@ const generateAppointmentReminderHTML = (data: AppointmentEmailData): string => 
           
           <p>Nous vous attendons avec impatience !</p>
           
-          <p>Cordialement,<br>L'équipe Queen's Glam</p>
+          <p>Cordialement,<br>L&apos;équipe Queen&apos;s Glam</p>
         </div>
         
         <div class="footer">
-          <p>Queen's Glam - Votre institut de beauté à Gatineau</p>
+          <p>Queen&apos;s Glam - Votre institut de beauté à Gatineau</p>
         </div>
       </div>
     </body>
@@ -249,7 +275,7 @@ const generateAppointmentCancellationHTML = (data: AppointmentEmailData): string
       <div class="container">
         <div class="header">
           <h1>❌ Annulation de rendez-vous</h1>
-          <p>Queen's Glam</p>
+          <p>Queen&apos;s Glam</p>
         </div>
         
         <div class="content">
@@ -264,11 +290,11 @@ const generateAppointmentCancellationHTML = (data: AppointmentEmailData): string
           
           <p>Nous espérons vous revoir bientôt !</p>
           
-          <p>Cordialement,<br>L'équipe Queen's Glam</p>
+          <p>Cordialement,<br>L&apos;équipe Queen&apos;s Glam</p>
         </div>
         
         <div class="footer">
-          <p>Queen's Glam - Votre institut de beauté à Gatineau</p>
+          <p>Queen&apos;s Glam - Votre institut de beauté à Gatineau</p>
         </div>
       </div>
     </body>
@@ -286,11 +312,11 @@ const generateAppointmentConfirmationText = (data: AppointmentEmailData): string
   });
 
   return `
-Confirmation de votre rendez-vous - Queen's Glam
+Confirmation de votre rendez-vous - Queen&apos;s Glam
 
 Bonjour ${data.customerName},
 
-Nous sommes ravis de confirmer votre rendez-vous chez Queen's Glam !
+Nous sommes ravis de confirmer votre rendez-vous chez Queen&apos;s Glam !
 
 Détails de votre rendez-vous :
 - Service : ${data.serviceName}
@@ -300,14 +326,14 @@ Détails de votre rendez-vous :
 - Prix : ${data.price}€
 - Numéro de RDV : #${data.appointmentId.slice(0, 8)}
 
-Adresse : Queen's Glam, Gatineau (adresse précise communiquée par SMS)
+Adresse : Queen&apos;s Glam, Gatineau (adresse précise communiquée par SMS)
 
 Pour toute modification ou question, contactez-nous par téléphone ou email.
 
 Nous avons hâte de vous accueillir pour votre moment glam !
 
 Cordialement,
-L'équipe Queen's Glam
+L&apos;équipe Queen&apos;s Glam
   `;
 };
 
@@ -320,7 +346,7 @@ const generateAppointmentReminderText = (data: AppointmentEmailData): string => 
   });
 
   return `
-Rappel de votre rendez-vous - Queen's Glam
+Rappel de votre rendez-vous - Queen&apos;s Glam
 
 Bonjour ${data.customerName},
 
@@ -333,7 +359,7 @@ Rappel : Votre rendez-vous est demain !
 Nous vous attendons avec impatience !
 
 Cordialement,
-L'équipe Queen's Glam
+L&apos;équipe Queen&apos;s Glam
   `;
 };
 
@@ -346,7 +372,7 @@ const generateAppointmentCancellationText = (data: AppointmentEmailData): string
   });
 
   return `
-Annulation de votre rendez-vous - Queen's Glam
+Annulation de votre rendez-vous - Queen&apos;s Glam
 
 Bonjour ${data.customerName},
 
@@ -359,6 +385,125 @@ Votre rendez-vous a été annulé :
 Nous espérons vous revoir bientôt !
 
 Cordialement,
-L'équipe Queen's Glam
+L&apos;équipe Queen&apos;s Glam
+  `;
+};
+
+const generateOrderConfirmationHTML = (data: OrderEmailData): string => {
+  const orderItemsHTML = data.orderItems.map(item => `
+    <tr>
+      <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.price.toFixed(2)}€</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.total.toFixed(2)}€</td>
+    </tr>
+  `).join('');
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Confirmation de commande</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #FF69B4, #C71585); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+        .order-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .order-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .order-table th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6; }
+        .order-table td { padding: 10px; border-bottom: 1px solid #eee; }
+        .total-row { font-weight: bold; background: #f8f9fa; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        .btn { display: inline-block; background: #FF69B4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 10px 5px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>✨ Commande Confirmée !</h1>
+          <p>Queen&apos;s Glam - Votre moment beauté</p>
+        </div>
+        
+        <div class="content">
+          <p>Bonjour ${data.customerName},</p>
+          
+          <p>Nous sommes ravis de confirmer votre commande chez Queen&apos;s Glam !</p>
+          
+          <div class="order-details">
+            <h3>📦 Détails de votre commande</h3>
+            <p><strong>Numéro de commande :</strong> #${data.orderNumber}</p>
+            <p><strong>Date :</strong> ${new Date().toLocaleDateString('fr-FR')}</p>
+            
+            <table class="order-table">
+              <thead>
+                <tr>
+                  <th>Produit</th>
+                  <th style="text-align: center;">Quantité</th>
+                  <th style="text-align: right;">Prix unitaire</th>
+                  <th style="text-align: right;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${orderItemsHTML}
+                <tr class="total-row">
+                  <td colspan="3" style="text-align: right; padding: 15px;"><strong>Total</strong></td>
+                  <td style="text-align: right; padding: 15px;"><strong>${data.orderTotal.toFixed(2)}€</strong></td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <p><strong>Adresse de livraison :</strong></p>
+            <p style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">${data.shippingAddress}</p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="/panier" class="btn">Suivre ma commande</a>
+          </div>
+          
+          <p>Nous vous remercions pour votre confiance !</p>
+          
+          <p>Cordialement,<br>L&apos;équipe Queen&apos;s Glam</p>
+        </div>
+        
+        <div class="footer">
+          <p>Queen&apos;s Glam - Votre institut de beauté à Gatineau</p>
+          <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+const generateOrderConfirmationText = (data: OrderEmailData): string => {
+  const orderItemsText = data.orderItems.map(item => 
+    `- ${item.name} (x${item.quantity}) - ${item.total.toFixed(2)}€`
+  ).join('\n');
+
+  return `
+Confirmation de votre commande - Queen&apos;s Glam
+
+Bonjour ${data.customerName},
+
+Nous sommes ravis de confirmer votre commande chez Queen&apos;s Glam !
+
+Détails de votre commande :
+- Numéro de commande : #${data.orderNumber}
+- Date : ${new Date().toLocaleDateString('fr-FR')}
+
+Articles commandés :
+${orderItemsText}
+
+Total : ${data.orderTotal.toFixed(2)}€
+
+Adresse de livraison :
+${data.shippingAddress}
+
+Nous vous remercions pour votre confiance !
+
+Cordialement,
+L&apos;équipe Queen&apos;s Glam
   `;
 }; 

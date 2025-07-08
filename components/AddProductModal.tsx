@@ -675,7 +675,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
                 value={formData.brand}
                 onChange={(e) => handleInputChange('brand', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-                placeholder="Ex: Queen's Glam"
+                placeholder="Ex: Queen&apos;s Glam"
               />
             </div>
           </div>

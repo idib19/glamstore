@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide explains how to set up the Queen's Glam database with the new schema that includes real-time product ratings and enhanced functionality.
+This guide explains how to set up the Queen&apos;s Glam database with the new schema that includes real-time product ratings and enhanced functionality.
 
 ## Prerequisites
 
@@ -212,4 +212,4 @@ If you encounter any issues:
 3. Ensure you have the latest version of the schema file
 4. Check that all dependencies are installed in your Next.js project
 
-The database is now ready for real-time product management with the Queen's Glam application! 🎉 
+The database is now ready for real-time product management with the Queen&apos;s Glam application! 🎉 

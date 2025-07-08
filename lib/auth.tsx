@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check if user is already authenticated (from localStorage)
-    const authStatus = localStorage.getItem('glamstore_auth');
+    const authStatus = localStorage.getItem('queensglam_auth');
     if (authStatus === 'true') {
       setIsAuthenticated(true);
     }
@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Validate credentials
     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
-      localStorage.setItem('glamstore_auth', 'true');
+      localStorage.setItem('queensglam_auth', 'true');
       return true;
     }
     return false;
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem('glamstore_auth');
+    localStorage.removeItem('queensglam_auth');
   };
 
   const value = {
