@@ -10,18 +10,34 @@ import { Database } from '../../types/database';
 
 type ServiceCategory = Database['public']['Tables']['service_categories']['Row'];
 
+interface Service {
+  id: string;
+  name: string;
+  description: string | null;
+  category_id: string | null;
+  price: number;
+  duration_minutes: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  service_categories?: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+}
+
 interface ServicesProps {
   onAddService: () => void;
-  onEditService: (service: any) => void;
+  onEditService: (service: Service) => void;
 }
 
 export default function Services({ onAddService, onEditService }: ServicesProps) {
   const [activeTab, setActiveTab] = useState<'services' | 'categories'>('services');
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddServiceCategoryModalOpen, setIsAddServiceCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<ServiceCategory | null>(null);
-  const [categoryRefreshTrigger, setCategoryRefreshTrigger] = useState(0);
   
   // Confirmation dialog states
   const [confirmDialog, setConfirmDialog] = useState({
@@ -71,12 +87,7 @@ export default function Services({ onAddService, onEditService }: ServicesProps)
 
   // Category actions
   const handleCategoryAdded = () => {
-    setCategoryRefreshTrigger(prev => prev + 1);
-  };
-
-  const handleEditCategory = (category: ServiceCategory) => {
-    setEditingCategory(category);
-    setIsAddServiceCategoryModalOpen(true);
+    // Refresh categories table
   };
 
   const handleCloseCategoryModal = () => {
@@ -224,10 +235,7 @@ export default function Services({ onAddService, onEditService }: ServicesProps)
                   Ajouter une Catégorie
                 </button>
               </div>
-              <ServiceCategoriesTable 
-                refreshTrigger={categoryRefreshTrigger}
-                onEditCategory={handleEditCategory}
-              />
+              <ServiceCategoriesTable />
             </div>
           )}
         </div>

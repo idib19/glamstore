@@ -435,7 +435,7 @@ export const appointmentsApi = {
     
     try {
       // Test basic connection
-      const { data: testData, error: testError } = await supabase
+      const { error: testError } = await supabase
         .from('appointments')
         .select('count')
         .limit(1);

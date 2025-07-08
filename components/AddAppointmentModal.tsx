@@ -1,10 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Plus, Loader2 } from 'lucide-react';
 import { appointmentsApi, servicesApi, customersApi } from '../lib/supabase';
 import DatePicker from './DatePicker';
 import TimePicker from './TimePicker';
+import type { Database } from '../types/database';
+
+type Service = Database['public']['Tables']['services']['Row'];
+type Customer = Database['public']['Tables']['customers']['Row'];
 
 interface AddAppointmentModalProps {
   isOpen: boolean;
@@ -14,8 +18,8 @@ interface AddAppointmentModalProps {
 
 export default function AddAppointmentModal({ isOpen, onClose, onAppointmentAdded }: AddAppointmentModalProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [services, setServices] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [formData, setFormData] = useState({
@@ -44,34 +48,7 @@ export default function AddAppointmentModal({ isOpen, onClose, onAppointmentAdde
     }
   }, [isOpen]);
 
-  // Load available slots when date and service are selected
-  useEffect(() => {
-    if (formData.appointment_date && formData.service_id) {
-      loadAvailableSlots();
-    } else {
-      setAvailableSlots([]);
-    }
-  }, [formData.appointment_date, formData.service_id]);
-
-  const loadServices = async () => {
-    try {
-      const data = await servicesApi.getAll();
-      setServices(data);
-    } catch (error) {
-      console.error('Error loading services:', error);
-    }
-  };
-
-  const loadCustomers = async () => {
-    try {
-      const data = await customersApi.getAll();
-      setCustomers(data);
-    } catch (error) {
-      console.error('Error loading customers:', error);
-    }
-  };
-
-  const loadAvailableSlots = async () => {
+  const loadAvailableSlots = useCallback(async () => {
     if (!formData.appointment_date || !formData.service_id) return;
 
     try {
@@ -99,6 +76,33 @@ export default function AddAppointmentModal({ isOpen, onClose, onAppointmentAdde
       console.error('Error loading available slots:', error);
     } finally {
       setIsLoadingSlots(false);
+    }
+  }, [formData.appointment_date, formData.service_id, services]);
+
+  // Load available slots when date and service are selected
+  useEffect(() => {
+    if (formData.appointment_date && formData.service_id) {
+      loadAvailableSlots();
+    } else {
+      setAvailableSlots([]);
+    }
+  }, [formData.appointment_date, formData.service_id, loadAvailableSlots]);
+
+  const loadServices = async () => {
+    try {
+      const data = await servicesApi.getAll();
+      setServices(data);
+    } catch (error) {
+      console.error('Error loading services:', error);
+    }
+  };
+
+  const loadCustomers = async () => {
+    try {
+      const data = await customersApi.getAll();
+      setCustomers(data);
+    } catch (error) {
+      console.error('Error loading customers:', error);
     }
   };
 
@@ -235,7 +239,7 @@ export default function AddAppointmentModal({ isOpen, onClose, onAppointmentAdde
                 />
               ) : (
                 <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 text-sm">
-                  Veuillez d'abord sélectionner une date et un service
+                  Veuillez d&apos;abord sélectionner une date et un service
                 </div>
               )}
             </div>

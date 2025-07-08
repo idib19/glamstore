@@ -267,7 +267,7 @@ export default function DatePicker({
             <div className="flex items-center justify-between text-xs text-gray-600">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 rounded-full bg-soft-pink border-2 border-primary-pink"></div>
-                <span>Aujourd'hui</span>
+                <span>Aujourd&apos;hui</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 rounded-full bg-primary-pink"></div>

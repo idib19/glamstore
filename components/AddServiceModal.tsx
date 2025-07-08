@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { X, Plus, Loader2 } from 'lucide-react';
 import { servicesApi, categoriesApi } from '../lib/supabase';
+import type { Database } from '../types/database';
+
+type ServiceCategory = Database['public']['Tables']['service_categories']['Row'];
 
 interface AddServiceModalProps {
   isOpen: boolean;
@@ -12,7 +15,7 @@ interface AddServiceModalProps {
 
 export default function AddServiceModal({ isOpen, onClose, onServiceAdded }: AddServiceModalProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',

@@ -1,10 +1,9 @@
 'use client';
 
-import Navigation from '../components/Navigation';
-import Footer from '../components/Footer';
-import Link from 'next/link';
-import { ArrowRight, Star, Heart, Sparkles, Crown, Palette, Scissors, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowRight, Star, Palette, Settings } from 'lucide-react';
 import { categoriesApi } from '../lib/supabase';
 import { Database } from '../types/database';
 
@@ -14,61 +13,47 @@ type ServiceCategory = Database['public']['Tables']['service_categories']['Row']
 export default function Home() {
   const [essentialProducts, setEssentialProducts] = useState<ProductCategory[]>([]);
   const [personalizedServices, setPersonalizedServices] = useState<ServiceCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [servicesLoading, setServicesLoading] = useState(true);
 
-  // Fetch the first 3 product categories from the database
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const categories = await categoriesApi.getAll();
-        // Take the first 3 categories
-        setEssentialProducts(categories.slice(0, 3));
+        setCategoriesLoading(true);
+        const data = await categoriesApi.getAll();
+        // Get first 3 categories as "essential products"
+        setEssentialProducts(data.slice(0, 3));
       } catch (error) {
-        console.error('Error fetching product categories:', error);
-        // Fallback to empty array if fetch fails
-        setEssentialProducts([]);
+        console.error('Error fetching categories:', error);
       } finally {
-        setLoading(false);
+        setCategoriesLoading(false);
       }
     };
 
-    fetchCategories();
-  }, []);
-
-  // Fetch service categories from the database
-  useEffect(() => {
     const fetchServiceCategories = async () => {
       try {
-        const serviceCategories = await categoriesApi.getServiceCategories();
-        // Take the first 4 service categories
-        setPersonalizedServices(serviceCategories.slice(0, 4));
+        setServicesLoading(true);
+        const data = await categoriesApi.getServiceCategories();
+        // Get first 4 service categories as "personalized services"
+        setPersonalizedServices(data.slice(0, 4));
       } catch (error) {
         console.error('Error fetching service categories:', error);
-        // Fallback to empty array if fetch fails
-        setPersonalizedServices([]);
       } finally {
         setServicesLoading(false);
       }
     };
 
+    fetchCategories();
     fetchServiceCategories();
   }, []);
 
-  // Helper function to get icon based on service category name
   const getServiceIcon = (categoryName: string) => {
     const name = categoryName.toLowerCase();
-    if (name.includes('manucure') || name.includes('pédicure') || name.includes('pedicure')) {
-      return <Heart className="h-8 w-8 text-primary-pink" />;
-    } else if (name.includes('perruque') || name.includes('pose')) {
-      return <Crown className="h-8 w-8 text-primary-pink" />;
-    } else if (name.includes('coiffure') || name.includes('coiffage')) {
-      return <Scissors className="h-8 w-8 text-primary-pink" />;
-    } else if (name.includes('soin') || name.includes('entretien')) {
-      return <Sparkles className="h-8 w-8 text-primary-pink" />;
-    } else {
-      return <Settings className="h-8 w-8 text-primary-pink" />;
-    }
+    if (name.includes('soin')) return <Settings className="h-8 w-8 text-primary-pink" />;
+    if (name.includes('massage')) return <Settings className="h-8 w-8 text-primary-pink" />;
+    if (name.includes('maquillage')) return <Settings className="h-8 w-8 text-primary-pink" />;
+    if (name.includes('coiffure')) return <Settings className="h-8 w-8 text-primary-pink" />;
+    return <Settings className="h-8 w-8 text-primary-pink" />;
   };
 
   const testimonials = [
@@ -76,63 +61,50 @@ export default function Home() {
       id: 1,
       name: 'Marie L.',
       rating: 5,
-      comment: 'Queen&apos;s Glam m&apos;a transformée ! Je me sens belle et confiante.',
-      service: 'Pose de perruque'
+      comment: 'Une expérience exceptionnelle ! Le personnel est aux petits soins et le résultat dépasse mes attentes.',
+      service: 'Soin du visage'
     },
     {
       id: 2,
-      name: 'Sophie D.',
+      name: 'Sophie M.',
       rating: 5,
-      comment: 'Un univers glamour où je me sens comme une reine. Service exceptionnel !',
-      service: 'Manucure & pédicure'
+      comment: 'Queen\'s Glam est devenu mon institut de beauté préféré. Je me sens toujours belle et confiante après mes séances.',
+      service: 'Massage relaxant'
     },
     {
       id: 3,
-      name: 'Claire M.',
+      name: 'Julie D.',
       rating: 5,
-      comment: 'Les lip gloss Queen&apos;s Glam sont magiques ! Je ne peux plus m&apos;en passer.',
-      service: 'Produits cosmétiques'
+      comment: 'Un service client impeccable et des résultats magnifiques. Je recommande vivement !',
+      service: 'Maquillage'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navigation />
-      
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-pale-pink to-soft-pink py-20">
+      <section className="relative bg-gradient-to-br from-soft-pink via-light-pink to-pale-pink py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="font-elegant text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Bienvenue chez{' '}
-              <span className="text-primary-pink">Queen&apos;s Glam</span>
+              Bienvenue dans ton
+              <span className="text-primary-pink block">Royaume de Beauté</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-6 max-w-4xl mx-auto leading-relaxed">
-              Là où glamour, confiance et soin de soi se rencontrent.
-            </p>
-            <p className="text-lg text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
-              Queen&apos;s Glam, c&apos;est bien plus qu&apos;une boutique : c&apos;est un univers pensé
-              pour sublimer ta beauté naturelle, révéler ton éclat et t&apos;offrir une
-              expérience 100 % glamour.
+            <p className="text-xl text-gray-700 mb-8 max-w-3xl mx-auto">
+              Découvre l&apos;univers Queen&apos;s Glam où chaque détail est pensé pour que tu te sentes belle, 
+              confiante et rayonnante — à l&apos;intérieur comme à l&apos;extérieur.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/produits" className="btn-primary text-lg px-8 py-4">
-                Découvrir nos Essentiels
+              <Link href="/rendez-vous" className="btn-primary text-lg px-8 py-4">
+                Prendre Rendez-vous
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
               <Link href="/services" className="btn-secondary text-lg px-8 py-4">
-                Nos Services Personnalisés
+                Découvrir nos Services
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </div>
           </div>
-        </div>
-        
-        {/* Decorative elements */}
-        <div className="absolute top-10 left-10 text-primary-pink opacity-20">
-          <Crown className="h-12 w-12" />
-        </div>
-        <div className="absolute bottom-10 right-10 text-primary-pink opacity-20">
-          <Sparkles className="h-12 w-12" />
         </div>
       </section>
 
@@ -141,28 +113,21 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="font-elegant text-3xl font-bold text-gray-900 mb-4">
-              ✨ Découvre nos essentiels signés Queen&apos;s Glam
+              ✨ Nos Produits Essentiels
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Des produits de qualité pour révéler ta beauté naturelle et ton éclat.
+              Découvre notre sélection de produits de beauté et de soins pour prendre soin de toi au quotidien.
             </p>
           </div>
           
-          {loading ? (
+          {categoriesLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100">
-                  <div className="h-48 bg-gradient-to-br from-soft-pink to-light-pink flex items-center justify-center">
-                    <div className="animate-pulse">
-                      <Palette className="h-16 w-16 text-primary-pink opacity-50" />
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="animate-pulse">
-                      <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                    </div>
+                <div key={i} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all">
+                  <div className="animate-pulse">
+                    <div className="h-48 bg-gray-200 rounded mb-4"></div>
+                    <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                   </div>
                 </div>
               ))}
@@ -173,9 +138,11 @@ export default function Home() {
                 <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all border border-gray-100">
                   <div className="h-48 bg-gradient-to-br from-soft-pink to-light-pink flex items-center justify-center">
                     {product.image_url ? (
-                      <img 
+                      <Image 
                         src={product.image_url} 
                         alt={product.name}
+                        width={400}
+                        height={192}
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -239,9 +206,11 @@ export default function Home() {
                    {/* Service Image */}
                    <div className="h-32 bg-gradient-to-br from-soft-pink to-light-pink flex items-center justify-center">
                      {service.image_url ? (
-                       <img 
+                       <Image 
                          src={service.image_url} 
                          alt={service.name}
+                         width={400}
+                         height={128}
                          className="h-full w-full object-cover"
                        />
                      ) : (
@@ -372,8 +341,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

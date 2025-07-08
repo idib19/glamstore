@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Edit, Trash2, Eye, Package, AlertTriangle, X } from 'lucide-react';
+import Image from 'next/image';
+import { Edit, Trash2, Eye, Package, X, AlertTriangle } from 'lucide-react';
 import { productsApi, supabase } from '../lib/supabase';
 import { Database } from '../types/database';
 
@@ -246,9 +247,11 @@ export default function ProductsTable({ refreshTrigger }: ProductsTableProps) {
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-12 w-12">
                           {product.product_images && product.product_images.length > 0 ? (
-                            <img
+                            <Image
                               src={product.product_images[0].image_url}
                               alt={product.product_images[0].alt_text || product.name}
+                              width={48}
+                              height={48}
                               className="h-12 w-12 rounded-lg object-cover border border-gray-200"
                               loading="lazy"
                               onError={(e) => {
@@ -368,9 +371,11 @@ export default function ProductsTable({ refreshTrigger }: ProductsTableProps) {
               <div className="flex items-start mb-4">
                 <div className="flex-shrink-0 h-16 w-16 mr-4">
                   {deleteModal.product.product_images && deleteModal.product.product_images.length > 0 ? (
-                    <img
+                    <Image
                       src={deleteModal.product.product_images[0].image_url}
                       alt={deleteModal.product.product_images[0].alt_text || deleteModal.product.name}
+                      width={64}
+                      height={64}
                       className="h-16 w-16 rounded-lg object-cover border border-gray-200"
                     />
                   ) : (

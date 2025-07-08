@@ -4,14 +4,31 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { appointmentsApi } from '../../lib/supabase';
 import ConfirmDialog from '../ConfirmDialog';
+import { Database } from '../../types/database';
+
+type Appointment = Database['public']['Tables']['appointments']['Row'] & {
+  customers?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+  } | null;
+  services?: {
+    id: string;
+    name: string;
+    price: number;
+    duration_minutes: number;
+  } | null;
+};
 
 interface AppointmentsProps {
   onAddAppointment: () => void;
-  onEditAppointment: (appointment: any) => void;
+  onEditAppointment: (appointment: Appointment) => void;
 }
 
 export default function Appointments({ onAddAppointment, onEditAppointment }: AppointmentsProps) {
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,

@@ -106,6 +106,53 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
   }
 };
 
+interface CustomerData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country?: string;
+  notes?: string;
+}
+
+interface Customer {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  address: string;
+  city: string;
+  postal_code: string;
+  country: string;
+  is_active: boolean;
+}
+
+interface Order {
+  id: string;
+  order_number: string;
+  customer_id: string | null;
+  customer_name: string | null;
+  customer_email: string | null;
+  customer_phone: string | null;
+  status: string;
+  subtotal: number;
+  tax_amount: number;
+  shipping_amount: number;
+  discount_amount: number;
+  total_amount: number;
+  payment_method: string | null;
+  payment_status: string;
+  shipping_address: string | null;
+  billing_address: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 interface CartContextType {
   state: CartState;
   addToCart: (product: Product, quantity?: number) => void;
@@ -114,7 +161,7 @@ interface CartContextType {
   clearCart: () => void;
   getCartTotal: () => number;
   getCartItemCount: () => number;
-  createOrder: (customerData: any) => Promise<any>;
+  createOrder: (customerData: CustomerData) => Promise<Order>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -158,7 +205,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
             } catch (error) {
               console.error(`Failed to load product ${item.productId}:`, error);
               // Remove invalid items from localStorage
-              const updatedCart = cartData.filter((i: any) => i.productId !== item.productId);
+              const updatedCart = cartData.filter((i: { productId: string }) => i.productId !== item.productId);
               localStorage.setItem('cart', JSON.stringify(updatedCart));
             }
           }
@@ -214,7 +261,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     return state.items.reduce((count, item) => count + item.quantity, 0);
   };
 
-  const createOrder = async (customerData: any) => {
+  const createOrder = async (customerData: CustomerData) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
 
@@ -225,7 +272,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       if (customerData.email) {
         // Try to find existing customer
         const existingCustomers = await customersApi.getAll();
-        const existingCustomer = existingCustomers?.find((c: any) => c.email === customerData.email);
+        const existingCustomer = existingCustomers?.find((c: Customer) => c.email === customerData.email);
         
         if (existingCustomer) {
           customerId = existingCustomer.id;
@@ -269,7 +316,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         shipping_address: `${customerData.address}, ${customerData.postalCode} ${customerData.city}, ${customerData.country}`,
         billing_address: `${customerData.address}, ${customerData.postalCode} ${customerData.city}, ${customerData.country}`,
         notes: customerData.notes || null
-      });
+      }) as Order;
 
       // Add order items
       for (const item of state.items) {

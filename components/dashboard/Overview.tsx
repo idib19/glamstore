@@ -10,10 +10,47 @@ import {
 } from 'lucide-react';
 import { servicesApi, ordersApi, appointmentsApi } from '../../lib/supabase';
 
+interface Order {
+  id: string;
+  customer_id: string;
+  total_amount: number;
+  status: string;
+  created_at: string;
+  customers?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+  } | null;
+  customer_name?: string;
+}
+
+interface Appointment {
+  id: string;
+  appointment_date: string;
+  start_time: string;
+  status: string;
+  customers?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+  } | null;
+  services?: {
+    id: string;
+    name: string;
+  } | null;
+}
+
+interface Service {
+  id: string;
+  name: string;
+  price: number;
+  duration_minutes: number;
+}
+
 export default function Overview() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [services, setServices] = useState<any[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load all data for overview
@@ -199,7 +236,7 @@ export default function Overview() {
                 Aucune commande récente
               </div>
             ) : (
-              getRecentOrders().map((order: any) => (
+              getRecentOrders().map((order) => (
                 <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-4">
                     <div className="bg-primary-pink rounded-full p-2">
@@ -244,7 +281,14 @@ export default function Overview() {
                 Aucun rendez-vous prévu dans les 7 prochains jours
               </div>
             ) : (
-              getRecentAppointments().map((appointment: any) => (
+              getRecentAppointments().map((appointment: {
+                id: string;
+                customer: string;
+                service: string;
+                date: string;
+                time: string;
+                status: string;
+              }) => (
                 <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-4">
                     <div className="bg-primary-pink rounded-full p-2">

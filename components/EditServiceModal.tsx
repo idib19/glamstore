@@ -28,7 +28,11 @@ interface EditServiceModalProps {
 
 export default function EditServiceModal({ isOpen, onClose, service, onServiceUpdated }: EditServiceModalProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Array<{
+    id: string;
+    name: string;
+    slug: string;
+  }>>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',

@@ -280,7 +280,7 @@ export default function AppointmentDetails({ customerEmail, customerPhone }: App
             Aucun rendez-vous trouvé
           </h3>
           <p className="text-gray-600">
-            Aucun rendez-vous n'a été trouvé pour ces informations.
+            Aucun rendez-vous n&apos;a été trouvé pour ces informations.
           </p>
         </div>
       )}

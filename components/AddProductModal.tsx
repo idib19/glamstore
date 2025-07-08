@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, AlertCircle, CheckCircle, Upload, Trash2 } from 'lucide-react';
+import Image from 'next/image';
+import { X, Plus, Upload, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 import { productsApi, categoriesApi, storageApi, productImagesApi } from '../lib/supabase';
 import { Database } from '../types/database';
 import { generateSKU } from '../lib/utils';
@@ -245,7 +246,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     const newImages: ImageFile[] = [];
     const errors: string[] = [];
     
-    Array.from(files).forEach((file, index) => {
+    Array.from(files).forEach((file) => {
       // Validate file type
       if (!file.type.startsWith('image/')) {
         errors.push(`"${file.name}" n'est pas un fichier image valide`);
@@ -725,9 +726,11 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                       {selectedImages.map((image, index) => (
                         <div key={index} className="relative group">
-                          <img
+                          <Image
                             src={image.preview}
                             alt={`Preview ${index + 1}`}
+                            width={96}
+                            height={96}
                             className="w-full h-24 object-cover rounded-lg border border-gray-200"
                             loading="lazy"
                           />

@@ -6,7 +6,6 @@ import { StoreData } from '../../types/database';
 import { 
   Save, 
   MapPin, 
-  Mail, 
   Phone, 
   Globe, 
   Facebook, 
@@ -15,7 +14,6 @@ import {
   Youtube, 
   Linkedin,
   Calendar,
-  Clock,
   Building,
   AlertCircle,
   CheckCircle
@@ -476,7 +474,7 @@ export default function Settings({ onSettingsUpdated }: SettingsProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Disponible jusqu'au
+              Disponible jusqu&apos;au
             </label>
             <input
               type="date"

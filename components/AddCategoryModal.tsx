@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, AlertCircle, CheckCircle, Upload, Trash2, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
+import { X, AlertCircle, CheckCircle, Upload, Trash2 } from 'lucide-react';
 import { categoriesApi, storageApi } from '../lib/supabase';
 import { Database } from '../types/database';
 
@@ -19,6 +20,14 @@ interface ImageFile {
   preview: string;
   uploaded?: boolean;
   url?: string;
+}
+
+interface CategoryData {
+  name: string;
+  description: string | null;
+  slug: string;
+  image_url: string | null;
+  is_active: boolean;
 }
 
 export default function AddCategoryModal({ 
@@ -142,7 +151,7 @@ export default function AddCategoryModal({
     if (file.size > 5 * 1024 * 1024) {
       setErrors(prev => ({
         ...prev,
-        image: 'L\'image ne doit pas dépasser 5MB'
+        image: 'L&apos;image ne doit pas dépasser 5MB'
       }));
       return;
     }
@@ -154,7 +163,7 @@ export default function AddCategoryModal({
 
   const uploadImage = async (file: File): Promise<string> => {
     const fileName = `category-images/${Date.now()}-${file.name}`;
-    const data = await storageApi.uploadProductImage(file, fileName);
+    await storageApi.uploadProductImage(file, fileName);
     
     const publicUrl = storageApi.getPublicUrl(fileName);
     return publicUrl;
@@ -185,7 +194,7 @@ export default function AddCategoryModal({
         imageUrl = await uploadImage(selectedImage.file);
       }
 
-      const categoryData = {
+      const categoryData: CategoryData = {
         name: formData.name.trim(),
         description: formData.description.trim() || null,
         slug: formData.slug.trim(),
@@ -205,10 +214,11 @@ export default function AddCategoryModal({
         onClose();
       }, 1500);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving category:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la sauvegarde de la catégorie';
       setErrors({
-        submit: err.message || 'Erreur lors de la sauvegarde de la catégorie'
+        submit: errorMessage
       });
     } finally {
       setLoading(false);
@@ -262,9 +272,11 @@ export default function AddCategoryModal({
               {/* Image Preview */}
               {selectedImage && (
                 <div className="relative inline-block">
-                  <img
+                  <Image
                     src={selectedImage.preview}
                     alt="Preview"
+                    width={128}
+                    height={128}
                     className="h-32 w-32 rounded-lg object-cover border border-gray-200"
                   />
                   <button
@@ -345,7 +357,7 @@ export default function AddCategoryModal({
               <p className="mt-1 text-sm text-red-600">{errors.slug}</p>
             )}
             <p className="mt-1 text-sm text-gray-500">
-              Le slug sera utilisé dans l'URL de la catégorie
+              Le slug sera utilisé dans l&apos;URL de la catégorie
             </p>
           </div>
 

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Edit, Eye, X, Calendar, User, Phone, Mail, MapPin, Package, CreditCard, FileText, Image } from 'lucide-react';
+import Image from 'next/image';
+import { Edit, Eye, X, Calendar, User, Phone, Mail, MapPin, Package, CreditCard, FileText, Image as LucideImage } from 'lucide-react';
 import { ordersApi } from '../../lib/supabase';
 
 interface Order {
@@ -89,9 +90,11 @@ function ProductImageGallery({ images, productName }: ProductImageGalleryProps) 
       {/* Main Image */}
       <div className="relative group cursor-pointer" onClick={() => setShowGallery(true)}>
         <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
-          <img
+          <Image
             src={primaryImage.image_url}
             alt={primaryImage.alt_text || productName}
+            width={64}
+            height={64}
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -100,7 +103,7 @@ function ProductImageGallery({ images, productName }: ProductImageGalleryProps) 
             }}
           />
           <div className="hidden w-full h-full flex items-center justify-center bg-gray-100">
-            <Image className="h-6 w-6 text-gray-400" />
+            <LucideImage className="h-6 w-6 text-gray-400" />
           </div>
         </div>
         
@@ -136,11 +139,13 @@ function ProductImageGallery({ images, productName }: ProductImageGalleryProps) 
             <div className="p-4">
               {/* Main Image */}
               <div className="mb-4">
-                                       <img
-                         src={images[selectedImageIndex].image_url}
-                         alt={images[selectedImageIndex].alt_text || `${productName} - Image ${selectedImageIndex + 1}`}
-                         className="w-full h-64 object-cover rounded-lg"
-                       />
+                <Image
+                  src={images[selectedImageIndex].image_url}
+                  alt={images[selectedImageIndex].alt_text || `${productName} - Image ${selectedImageIndex + 1}`}
+                  width={400}
+                  height={256}
+                  className="w-full h-64 object-cover rounded-lg"
+                />
               </div>
               
               {/* Thumbnail Navigation */}
@@ -156,9 +161,11 @@ function ProductImageGallery({ images, productName }: ProductImageGalleryProps) 
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <img
+                      <Image
                         src={image.image_url}
                         alt={image.alt_text || `${productName} - Image ${index + 1}`}
+                        width={64}
+                        height={64}
                         className="w-full h-full object-cover"
                       />
                     </button>
@@ -368,7 +375,7 @@ function OrderDetailsModal({ isOpen, onClose, order }: OrderDetailsModalProps) {
                             />
                           ) : (
                             <div className="w-16 h-16 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center">
-                              <Image className="h-6 w-6 text-gray-400" />
+                              <LucideImage className="h-6 w-6 text-gray-400" />
                             </div>
                           )}
                         </div>

@@ -1,12 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import Image from 'next/image';
 import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
 import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useCart } from '../../lib/cartContext';
 import { emailService } from '../../lib/emailService';
+
+interface OrderDetails {
+  id: string;
+  order_number: string;
+  total_amount: number;
+  status: string;
+  created_at: string;
+}
 
 export default function CartPage() {
   const { 
@@ -32,7 +41,7 @@ export default function CartPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [orderDetails, setOrderDetails] = useState<any>(null);
+  const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -183,9 +192,11 @@ export default function CartPage() {
                     <div className="flex items-center space-x-4">
                       <div className="w-20 h-20 bg-gradient-to-br from-soft-pink to-light-pink rounded-lg flex items-center justify-center">
                         {item.product.product_images && item.product.product_images.length > 0 ? (
-                          <img 
+                          <Image 
                             src={item.product.product_images[0].image_url} 
                             alt={item.product.name}
+                            width={80}
+                            height={80}
                             className="w-full h-full object-cover rounded-lg"
                           />
                         ) : (

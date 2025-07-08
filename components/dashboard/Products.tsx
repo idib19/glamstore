@@ -16,22 +16,15 @@ interface ProductsProps {
 }
 
 export default function Products({ 
-  isAddProductModalOpen, 
   setIsAddProductModalOpen, 
   refreshTrigger 
 }: ProductsProps) {
   const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<ProductCategory | null>(null);
-  const [categoryRefreshTrigger, setCategoryRefreshTrigger] = useState(0);
 
   const handleCategoryAdded = () => {
-    setCategoryRefreshTrigger(prev => prev + 1);
-  };
-
-  const handleEditCategory = (category: ProductCategory) => {
-    setEditingCategory(category);
-    setIsAddCategoryModalOpen(true);
+    // Refresh categories table
   };
 
   const handleCloseCategoryModal = () => {
@@ -102,10 +95,7 @@ export default function Products({
                   Ajouter une Catégorie
                 </button>
               </div>
-              <CategoriesTable 
-                refreshTrigger={categoryRefreshTrigger}
-                onEditCategory={handleEditCategory}
-              />
+              <CategoriesTable />
             </div>
           )}
         </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ShoppingBag, Star, Heart, Crown, Sparkles, Palette, CheckCircle } from 'lucide-react';
 import { productsApi, categoriesApi, supabase } from '../../lib/supabase';
 import { Database } from '../../types/database';
@@ -267,9 +268,11 @@ export default function ProductsPage() {
                   {/* Product Image */}
                   <div className="h-64 bg-gradient-to-br from-soft-pink to-light-pink flex items-center justify-center relative">
                     {product.product_images && product.product_images.length > 0 ? (
-                      <img
+                      <Image
                         src={product.product_images[0].image_url}
                         alt={product.product_images[0].alt_text || product.name}
+                        width={400}
+                        height={256}
                         className="h-64 w-full object-cover rounded-t-2xl"
                         loading="lazy"
                       />

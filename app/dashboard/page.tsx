@@ -13,6 +13,7 @@ import AddAppointmentModal from '../../components/AddAppointmentModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { useAuth } from '../../lib/auth';
 import { servicesApi, ordersApi, appointmentsApi } from '../../lib/supabase';
+import type { Database } from '../../types/database';
 
 // Dashboard sub-components
 import Overview from '../../components/dashboard/Overview';
@@ -28,15 +29,78 @@ import {
   ShoppingBag, 
   Calendar, 
   Users, 
-  Star, 
-  Plus, 
-  Edit, 
-  Trash2, 
   Eye,
   Package,
-  TrendingUp,
   LogOut
 } from 'lucide-react';
+
+type Service = Database['public']['Tables']['services']['Row'];
+type Appointment = Database['public']['Tables']['appointments']['Row'] & {
+  customers?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+  } | null;
+  services?: {
+    id: string;
+    name: string;
+    price: number;
+    duration_minutes: number;
+  } | null;
+};
+
+// Order type from Orders component
+interface Order {
+  id: string;
+  order_number: string;
+  customer_id: string | null;
+  customer_name: string | null;
+  customer_email: string | null;
+  customer_phone: string | null;
+  status: string;
+  subtotal: number;
+  tax_amount: number;
+  shipping_amount: number;
+  discount_amount: number;
+  total_amount: number;
+  payment_method: string | null;
+  payment_status: string;
+  shipping_address: string | null;
+  billing_address: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  customers?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+  } | null;
+  order_items?: Array<{
+    id: string;
+    product_id: string | null;
+    product_name: string;
+    product_sku: string | null;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    products?: {
+      id: string;
+      name: string;
+      brand: string | null;
+      product_images?: Array<{
+        id: string;
+        image_url: string;
+        alt_text: string | null;
+        is_primary: boolean;
+        sort_order: number;
+      }>;
+    };
+  }>;
+}
 
 export default function DashboardPage() {
   const { isAuthenticated, login, logout, isLoading } = useAuth();
@@ -47,21 +111,25 @@ export default function DashboardPage() {
   // Service modals
   const [isAddServiceModalOpen, setIsAddServiceModalOpen] = useState(false);
   const [isEditServiceModalOpen, setIsEditServiceModalOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState<any>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
   
   // Order modals
   const [isEditOrderModalOpen, setIsEditOrderModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   
   // Appointment modals
   const [isAddAppointmentModalOpen, setIsAddAppointmentModalOpen] = useState(false);
   const [isEditAppointmentModalOpen, setIsEditAppointmentModalOpen] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   
-  // Data states
-  const [services, setServices] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [appointments, setAppointments] = useState<any[]>([]);
+  // Data states - these are used by the child components, so we'll keep them but mark them as used
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [services, setServices] = useState<Service[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [orders, setOrders] = useState<Order[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoadingData, setIsLoadingData] = useState(false);
   
   // Confirmation dialog states
@@ -171,57 +239,21 @@ export default function DashboardPage() {
   };
 
   // Service actions
-  const handleEditService = (service: any) => {
+  const handleEditService = (service: Service) => {
     setSelectedService(service);
     setIsEditServiceModalOpen(true);
   };
 
-  const handleDeleteService = async (serviceId: string) => {
-    setConfirmDialog({
-      isOpen: true,
-      title: 'Supprimer le service',
-      message: 'Êtes-vous sûr de vouloir supprimer ce service ? Cette action ne peut pas être annulée.',
-      onConfirm: async () => {
-        try {
-          await servicesApi.delete(serviceId);
-          loadServices();
-          console.log('Service deleted successfully');
-        } catch (error) {
-          console.error('Error deleting service:', error);
-          alert('Erreur lors de la suppression du service');
-        }
-      }
-    });
-  };
-
   // Order actions
-  const handleEditOrder = (order: any) => {
+  const handleEditOrder = (order: Order) => {
     setSelectedOrder(order);
     setIsEditOrderModalOpen(true);
   };
 
   // Appointment actions
-  const handleEditAppointment = (appointment: any) => {
+  const handleEditAppointment = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setIsEditAppointmentModalOpen(true);
-  };
-
-  const handleDeleteAppointment = async (appointmentId: string) => {
-    setConfirmDialog({
-      isOpen: true,
-      title: 'Annuler le rendez-vous',
-      message: 'Êtes-vous sûr de vouloir annuler ce rendez-vous ?',
-      onConfirm: async () => {
-        try {
-          await appointmentsApi.update(appointmentId, { status: 'cancelled' });
-          loadAppointments();
-          console.log('Appointment cancelled successfully');
-        } catch (error) {
-          console.error('Error cancelling appointment:', error);
-          alert('Erreur lors de l\'annulation du rendez-vous');
-        }
-      }
-    });
   };
 
   const handleLogin = (email: string, password: string) => {

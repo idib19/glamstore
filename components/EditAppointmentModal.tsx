@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Save, Loader2 } from 'lucide-react';
 import { appointmentsApi, servicesApi, customersApi } from '../lib/supabase';
 import DatePicker from './DatePicker';
@@ -45,8 +45,19 @@ interface EditAppointmentModalProps {
 
 export default function EditAppointmentModal({ isOpen, onClose, appointment, onAppointmentUpdated }: EditAppointmentModalProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [services, setServices] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [services, setServices] = useState<Array<{
+    id: string;
+    name: string;
+    price: number;
+    duration_minutes: number;
+  }>>([]);
+  const [customers, setCustomers] = useState<Array<{
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+  }>>([]);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [formData, setFormData] = useState({
@@ -60,6 +71,7 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
     deposit_paid: false
   });
 
+  // Load services and customers
   useEffect(() => {
     if (isOpen) {
       loadServices();
@@ -79,15 +91,6 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
     }
   }, [isOpen, appointment]);
 
-  // Load available slots when date and service are selected
-  useEffect(() => {
-    if (formData.appointment_date && formData.service_id) {
-      loadAvailableSlots();
-    } else {
-      setAvailableSlots([]);
-    }
-  }, [formData.appointment_date, formData.service_id]);
-
   const loadServices = async () => {
     try {
       const data = await servicesApi.getAll();
@@ -106,38 +109,7 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
     }
   };
 
-  const loadAvailableSlots = async () => {
-    if (!formData.appointment_date || !formData.service_id) return;
-
-    try {
-      setIsLoadingSlots(true);
-      const selectedService = services.find(s => s.id === formData.service_id);
-      if (!selectedService) return;
-
-      const slots: string[] = [];
-      
-      // Generate time slots for business hours (9 AM to 7 PM)
-      for (let hour = 9; hour < 19; hour++) {
-        for (let minute = 0; minute < 60; minute += 30) {
-          const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-          
-          // Check if this slot is available (excluding current appointment time)
-          const isAvailable = await checkSlotAvailability(formData.appointment_date, timeString, selectedService.duration_minutes);
-          if (isAvailable) {
-            slots.push(timeString);
-          }
-        }
-      }
-      
-      setAvailableSlots(slots);
-    } catch (error) {
-      console.error('Error loading available slots:', error);
-    } finally {
-      setIsLoadingSlots(false);
-    }
-  };
-
-  const checkSlotAvailability = async (date: string, startTime: string, durationMinutes: number): Promise<boolean> => {
+  const checkSlotAvailability = useCallback(async (date: string, startTime: string, durationMinutes: number): Promise<boolean> => {
     try {
       // For editing, we need to exclude the current appointment time
       const result = await appointmentsApi.checkAvailability(date, startTime, durationMinutes);
@@ -152,7 +124,58 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
       console.error('Error checking availability:', error);
       return false;
     }
-  };
+  }, [appointment]);
+
+  const loadAvailableSlots = useCallback(async () => {
+    if (!formData.appointment_date || !formData.service_id) {
+      setAvailableSlots([]);
+      return;
+    }
+
+    try {
+      setIsLoadingSlots(true);
+      const selectedService = services.find(s => s.id === formData.service_id);
+      if (!selectedService) return;
+
+      // Generate time slots from 9 AM to 6 PM
+      const slots = [];
+      const startHour = 9;
+      const endHour = 18;
+      const interval = 30; // 30 minutes
+
+      for (let hour = startHour; hour < endHour; hour++) {
+        for (let minute = 0; minute < 60; minute += interval) {
+          const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+          
+          // Check if this slot is available
+          const isAvailable = await checkSlotAvailability(
+            formData.appointment_date,
+            timeString,
+            selectedService.duration_minutes
+          );
+          
+          if (isAvailable) {
+            slots.push(timeString);
+          }
+        }
+      }
+
+      setAvailableSlots(slots);
+    } catch (error) {
+      console.error('Error loading available slots:', error);
+      setAvailableSlots([]);
+    } finally {
+      setIsLoadingSlots(false);
+    }
+  }, [formData.appointment_date, formData.service_id, services, checkSlotAvailability]);
+
+  useEffect(() => {
+    if (formData.appointment_date && formData.service_id) {
+      loadAvailableSlots();
+    } else {
+      setAvailableSlots([]);
+    }
+  }, [formData.appointment_date, formData.service_id, loadAvailableSlots]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -326,7 +349,7 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
                 />
               ) : (
                 <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 text-sm">
-                  Veuillez d'abord sélectionner une date et un service
+                  Veuillez d&apos;abord sélectionner une date et un service
                 </div>
               )}
             </div>
@@ -353,30 +376,30 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Prix total (€)
+                Prix total
               </label>
               <input
                 type="number"
                 step="0.01"
-                min="0"
                 value={formData.total_price}
                 onChange={(e) => setFormData({ ...formData, total_price: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-                required
+                placeholder="0.00"
               />
             </div>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="deposit_paid"
-                checked={formData.deposit_paid}
-                onChange={(e) => setFormData({ ...formData, deposit_paid: e.target.checked })}
-                className="h-4 w-4 text-primary-pink focus:ring-primary-pink border-gray-300 rounded"
-              />
-              <label htmlFor="deposit_paid" className="text-sm font-medium text-gray-700">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Acompte payé
               </label>
+              <select
+                value={formData.deposit_paid ? 'true' : 'false'}
+                onChange={(e) => setFormData({ ...formData, deposit_paid: e.target.value === 'true' })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
+              >
+                <option value="false">Non</option>
+                <option value="true">Oui</option>
+              </select>
             </div>
           </div>
 
@@ -385,15 +408,15 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
               Notes
             </label>
             <textarea
-              value={formData.notes}
+              value={formData.notes || ''}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-              placeholder="Ajouter des notes sur ce rendez-vous..."
+              placeholder="Notes optionnelles..."
             />
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
@@ -404,17 +427,17 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 bg-primary-pink text-white rounded-md hover:bg-dark-pink transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              className="px-6 py-2 bg-primary-pink text-white rounded-md hover:bg-dark-pink transition-colors disabled:opacity-50 flex items-center"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Sauvegarde...
+                  Mise à jour...
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  Sauvegarder
+                  Mettre à jour
                 </>
               )}
             </button>

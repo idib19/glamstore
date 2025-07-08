@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
 import { servicesApi, appointmentsApi, customersApi } from '../../lib/supabase';
 import { emailService } from '../../lib/emailService';
-import { Calendar, Clock, User, Phone, Mail, MapPin, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, User, CheckCircle, AlertCircle } from 'lucide-react';
 import DatePicker from '../../components/DatePicker';
 import TimePicker from '../../components/TimePicker';
 
@@ -66,26 +66,7 @@ export default function RendezVousPage() {
     loadServices();
   }, []);
 
-  useEffect(() => {
-    if (selectedDate && selectedService) {
-      loadAvailableSlots();
-    }
-  }, [selectedDate, selectedService]);
-
-  const loadServices = async () => {
-    try {
-      setIsLoading(true);
-      const data = await servicesApi.getAll();
-      setServices(data);
-    } catch (error) {
-      console.error('Error loading services:', error);
-      setBookingError('Erreur lors du chargement des services');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadAvailableSlots = async () => {
+  const loadAvailableSlots = useCallback(async () => {
     if (!selectedDate || !selectedService) return;
 
     try {
@@ -111,6 +92,25 @@ export default function RendezVousPage() {
       setBookingError('Erreur lors du chargement des créneaux disponibles');
     } finally {
       setIsLoadingSlots(false);
+    }
+  }, [selectedDate, selectedService, businessHours.start, businessHours.end, businessHours.interval]);
+
+  useEffect(() => {
+    if (selectedDate && selectedService) {
+      loadAvailableSlots();
+    }
+  }, [selectedDate, selectedService, loadAvailableSlots]);
+
+  const loadServices = async () => {
+    try {
+      setIsLoading(true);
+      const data = await servicesApi.getAll();
+      setServices(data);
+    } catch (error) {
+      console.error('Error loading services:', error);
+      setBookingError('Erreur lors du chargement des services');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -191,12 +191,12 @@ export default function RendezVousPage() {
   const validateCustomerForm = () => {
     if (!customerForm.first_name.trim()) return 'Le prénom est requis';
     if (!customerForm.last_name.trim()) return 'Le nom est requis';
-    if (!customerForm.email.trim()) return 'L\'email est requis';
+    if (!customerForm.email.trim()) return 'L&apos;email est requis';
     if (!customerForm.phone.trim()) return 'Le téléphone est requis';
     
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(customerForm.email)) return 'Format d\'email invalide';
+    if (!emailRegex.test(customerForm.email)) return 'Format d&apos;email invalide';
     
     return null;
   };
@@ -476,7 +476,7 @@ export default function RendezVousPage() {
                     />
                   ) : (
                     <div className="text-gray-500 text-sm">
-                      Veuillez d'abord sélectionner une date
+                      Veuillez d&apos;abord sélectionner une date
                     </div>
                   )}
                 </div>
