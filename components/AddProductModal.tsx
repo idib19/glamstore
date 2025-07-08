@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Plus, AlertCircle, CheckCircle, Upload, Trash2 } from 'lucide-react';
 import { productsApi, categoriesApi, storageApi, productImagesApi } from '../lib/supabase';
 import { Database } from '../types/database';
+import { generateSKU } from '../lib/utils';
 
 type ProductCategory = Database['public']['Tables']['product_categories']['Row'];
 
@@ -39,9 +40,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     sku: '',
     brand: '',
     in_stock: true,
-    is_featured: false,
-    weight_grams: '',
-    dimensions_cm: ''
+    is_featured: false
   });
 
   // Validation state
@@ -63,6 +62,20 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
       fetchCategories();
     }
   }, [isOpen]);
+
+  // Generate SKU when category changes
+  useEffect(() => {
+    if (formData.category_id && !formData.sku) {
+      const selectedCategory = categories.find(cat => cat.id === formData.category_id);
+      if (selectedCategory) {
+        const generatedSku = generateSKU(selectedCategory.name);
+        setFormData(prev => ({
+          ...prev,
+          sku: generatedSku
+        }));
+      }
+    }
+  }, [formData.category_id, categories, formData.sku]);
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -91,9 +104,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
       sku: '',
       brand: '',
       in_stock: true,
-      is_featured: false,
-      weight_grams: '',
-      dimensions_cm: ''
+      is_featured: false
     });
     setErrors({});
     setError(null);
@@ -132,7 +143,12 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     if (selectedImages.length > 0) {
       const totalSize = selectedImages.reduce((total, image) => total + image.file.size, 0);
       if (totalSize > 25 * 1024 * 1024) { // 25MB total limit
-        newErrors.images = 'La taille totale des images ne doit pas dépasser 25MB';
+        newErrors.images = `La taille totale des images (${(totalSize / (1024 * 1024)).toFixed(1)}MB) dépasse la limite de 25MB. Supprimez quelques images ou choisissez des fichiers plus petits.`;
+      }
+      
+      // Validate number of images
+      if (selectedImages.length > 10) {
+        newErrors.images = `Trop d'images sélectionnées (${selectedImages.length}). Maximum autorisé: 10 images.`;
       }
     }
 
@@ -162,8 +178,6 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
         brand: formData.brand.trim() || null,
         in_stock: formData.in_stock,
         is_featured: formData.is_featured,
-        weight_grams: formData.weight_grams ? parseFloat(formData.weight_grams) : null,
-        dimensions_cm: formData.dimensions_cm.trim() || null,
         is_active: true
       };
 
@@ -212,23 +226,48 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     }
   };
 
+  const handleGenerateSKU = () => {
+    const selectedCategory = categories.find(cat => cat.id === formData.category_id);
+    if (selectedCategory) {
+      const newSku = generateSKU(selectedCategory.name);
+      setFormData(prev => ({
+        ...prev,
+        sku: newSku
+      }));
+    }
+  };
+
   // Image handling functions
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
 
     const newImages: ImageFile[] = [];
+    const errors: string[] = [];
     
-    Array.from(files).forEach((file) => {
+    Array.from(files).forEach((file, index) => {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        setError('Veuillez sélectionner uniquement des fichiers image');
+        errors.push(`"${file.name}" n'est pas un fichier image valide`);
+        return;
+      }
+
+      // Validate specific image formats
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        errors.push(`"${file.name}" a un format non supporté. Formats acceptés: PNG, JPG, JPEG, GIF, WEBP`);
         return;
       }
 
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setError('La taille du fichier ne doit pas dépasser 5MB');
+        errors.push(`"${file.name}" est trop volumineux (${(file.size / (1024 * 1024)).toFixed(1)}MB). Taille maximum: 5MB`);
+        return;
+      }
+
+      // Validate minimum file size (prevent empty or corrupted files)
+      if (file.size < 1024) { // Less than 1KB
+        errors.push(`"${file.name}" semble être vide ou corrompu (${file.size} bytes)`);
         return;
       }
 
@@ -241,6 +280,12 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
         name
       });
     });
+
+    // Display errors if any
+    if (errors.length > 0) {
+      setError(`Erreurs de validation: ${errors.join('; ')}`);
+      return;
+    }
 
     setSelectedImages(prev => [...prev, ...newImages]);
     setError(null);
@@ -287,21 +332,76 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
         error: err
       });
       
-      // Provide more specific error messages
-      let errorMessage = 'Erreur inconnue';
+      // Comprehensive error message handling
+      let errorMessage = 'Erreur inconnue lors du téléchargement des images';
+      let errorDetails = '';
+      
       if (err instanceof Error) {
-        if (err.message.includes('Storage bucket error')) {
-          errorMessage = 'Erreur de configuration du stockage. Vérifiez que le bucket "produitsimages" existe.';
-        } else if (err.message.includes('Cannot access storage bucket')) {
-          errorMessage = 'Impossible d\'accéder au stockage. Vérifiez les permissions du bucket.';
-        } else if (err.message.includes('Upload failed')) {
-          errorMessage = 'Échec du téléchargement. Vérifiez la taille et le type de fichier.';
-        } else {
-          errorMessage = err.message;
+        const errorMsg = err.message.toLowerCase();
+        
+        // Storage bucket and configuration errors
+        if (errorMsg.includes('storage bucket error') || errorMsg.includes('bucket not found')) {
+          errorMessage = 'Erreur de configuration du stockage';
+          errorDetails = 'Le bucket "produitsimages" n\'existe pas ou n\'est pas configuré correctement. Contactez l\'administrateur.';
+        }
+        // RLS (Row Level Security) policy errors
+        else if (errorMsg.includes('row-level security policy') || errorMsg.includes('security policies')) {
+          errorMessage = 'Accès refusé par les politiques de sécurité';
+          errorDetails = 'Vos permissions ne permettent pas de télécharger des images. Contactez l\'administrateur pour vérifier les droits d\'accès.';
+        }
+        // Authentication errors
+        else if (errorMsg.includes('jwt') || errorMsg.includes('authentication') || errorMsg.includes('unauthorized')) {
+          errorMessage = 'Erreur d\'authentification';
+          errorDetails = 'Votre session a expiré ou vous n\'êtes pas autorisé. Veuillez vous reconnecter.';
+        }
+        // File size errors
+        else if (errorMsg.includes('file too large') || errorMsg.includes('size limit')) {
+          errorMessage = 'Fichier trop volumineux';
+          errorDetails = 'La taille du fichier dépasse la limite autorisée (5MB maximum).';
+        }
+        // File type errors
+        else if (errorMsg.includes('invalid file type') || errorMsg.includes('unsupported format')) {
+          errorMessage = 'Type de fichier non supporté';
+          errorDetails = 'Seuls les formats PNG, JPG, JPEG, GIF et WEBP sont acceptés.';
+        }
+        // Network errors
+        else if (errorMsg.includes('network') || errorMsg.includes('connection') || errorMsg.includes('timeout')) {
+          errorMessage = 'Erreur de connexion réseau';
+          errorDetails = 'Vérifiez votre connexion internet et réessayez.';
+        }
+        // Storage quota errors
+        else if (errorMsg.includes('quota') || errorMsg.includes('storage limit') || errorMsg.includes('disk space')) {
+          errorMessage = 'Espace de stockage insuffisant';
+          errorDetails = 'L\'espace de stockage disponible est insuffisant. Contactez l\'administrateur.';
+        }
+        // Duplicate file errors
+        else if (errorMsg.includes('duplicate') || errorMsg.includes('already exists')) {
+          errorMessage = 'Fichier en double';
+          errorDetails = 'Un fichier avec le même nom existe déjà. Renommez votre fichier et réessayez.';
+        }
+        // Database errors
+        else if (errorMsg.includes('database') || errorMsg.includes('constraint') || errorMsg.includes('foreign key')) {
+          errorMessage = 'Erreur de base de données';
+          errorDetails = 'Impossible d\'enregistrer l\'image dans la base de données. Contactez l\'administrateur.';
+        }
+        // Generic upload errors
+        else if (errorMsg.includes('upload failed') || errorMsg.includes('upload error')) {
+          errorMessage = 'Échec du téléchargement';
+          errorDetails = 'Le téléchargement a échoué. Vérifiez la taille et le type de fichier, puis réessayez.';
+        }
+        // Default case - use the original error message
+        else {
+          errorMessage = 'Erreur lors du téléchargement';
+          errorDetails = err.message;
         }
       }
       
-      throw new Error(`Erreur lors du téléchargement des images: ${errorMessage}`);
+      // Create a comprehensive error message
+      const fullErrorMessage = errorDetails 
+        ? `${errorMessage}: ${errorDetails}`
+        : errorMessage;
+      
+      throw new Error(fullErrorMessage);
     } finally {
       setUploadingImages(false);
     }
@@ -326,16 +426,30 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     const imageFiles = files.filter(file => file.type.startsWith('image/'));
     
     if (imageFiles.length === 0) {
-      setError('Veuillez déposer uniquement des fichiers image');
+      setError('Veuillez déposer uniquement des fichiers image valides (PNG, JPG, JPEG, GIF, WEBP)');
       return;
     }
 
     const newImages: ImageFile[] = [];
+    const errors: string[] = [];
     
     imageFiles.forEach((file) => {
+      // Validate specific image formats
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        errors.push(`"${file.name}" a un format non supporté. Formats acceptés: PNG, JPG, JPEG, GIF, WEBP`);
+        return;
+      }
+
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setError('La taille du fichier ne doit pas dépasser 5MB');
+        errors.push(`"${file.name}" est trop volumineux (${(file.size / (1024 * 1024)).toFixed(1)}MB). Taille maximum: 5MB`);
+        return;
+      }
+
+      // Validate minimum file size (prevent empty or corrupted files)
+      if (file.size < 1024) { // Less than 1KB
+        errors.push(`"${file.name}" semble être vide ou corrompu (${file.size} bytes)`);
         return;
       }
 
@@ -348,6 +462,12 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
         name
       });
     });
+
+    // Display errors if any
+    if (errors.length > 0) {
+      setError(`Erreurs de validation: ${errors.join('; ')}`);
+      return;
+    }
 
     setSelectedImages(prev => [...prev, ...newImages]);
     setError(null);
@@ -468,7 +588,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
           </div>
 
           {/* Pricing */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Prix Normal (€) *
@@ -508,6 +628,43 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
                 <p className="mt-1 text-sm text-red-600">{errors.sale_price}</p>
               )}
             </div>
+          </div>
+
+          {/* Product Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                SKU *
+              </label>
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={formData.sku}
+                  onChange={(e) => handleInputChange('sku', e.target.value)}
+                  className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent ${
+                    errors.sku ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="Ex: QG-LG-001"
+                />
+                <button
+                  type="button"
+                  onClick={handleGenerateSKU}
+                  disabled={!formData.category_id}
+                  className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  title="Générer un SKU"
+                >
+                  ✨
+                </button>
+              </div>
+              {errors.sku && (
+                <p className="mt-1 text-sm text-red-600">{errors.sku}</p>
+              )}
+              {formData.category_id && (
+                <p className="mt-1 text-xs text-gray-500">
+                  Cliquez sur ✨ pour générer un SKU basé sur la catégorie
+                </p>
+              )}
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -519,55 +676,6 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
                 onChange={(e) => handleInputChange('brand', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent"
                 placeholder="Ex: Queen's Glam"
-              />
-            </div>
-          </div>
-
-          {/* Product Details */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                SKU *
-              </label>
-              <input
-                type="text"
-                value={formData.sku}
-                onChange={(e) => handleInputChange('sku', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent ${
-                  errors.sku ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="Ex: QG-LG-001"
-              />
-              {errors.sku && (
-                <p className="mt-1 text-sm text-red-600">{errors.sku}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Poids (g)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.weight_grams}
-                onChange={(e) => handleInputChange('weight_grams', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-                placeholder="0.00"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Dimensions (cm)
-              </label>
-              <input
-                type="text"
-                value={formData.dimensions_cm}
-                onChange={(e) => handleInputChange('dimensions_cm', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-                placeholder="Ex: 10x5x2"
               />
             </div>
           </div>
@@ -595,7 +703,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
                       <p className="mb-2 text-sm text-gray-500">
                         <span className="font-semibold">Cliquez pour télécharger</span> ou glissez-déposez
                       </p>
-                      <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu&apos;à 5MB</p>
+                      <p className="text-xs text-gray-500">PNG, JPG, JPEG, GIF, WEBP • Max 5MB par fichier • Max 10 images</p>
                     </div>
                     <input
                       ref={fileInputRef}
