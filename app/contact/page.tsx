@@ -1,52 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
-import { Mail, Phone, MapPin, Clock, Send, CheckCircle, Crown, Sparkles } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Crown, Sparkles } from 'lucide-react';
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: ''
-      });
-    }, 3000);
-  };
-
   const contactInfo = [
     {
       icon: <Mail className="h-8 w-8 text-primary-pink" />,
@@ -93,15 +51,6 @@ export default function ContactPage() {
       link: 'https://facebook.com/queensglam',
       icon: '📘'
     }
-  ];
-
-  const subjects = [
-    'Conseil beauté',
-    'Demande spéciale',
-    'Commande de produits',
-    'Réservation de service',
-    'Question générale',
-    'Autre'
   ];
 
   return (
@@ -181,7 +130,7 @@ export default function ContactPage() {
               ✨ Suivez-nous sur les Réseaux Sociaux
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Envoyez-nous un message via nos réseaux sociaux ou par le formulaire ci-dessous :
+              Envoyez-nous un message via nos réseaux sociaux :
             </p>
           </div>
           
@@ -207,145 +156,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Contact Form Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="font-elegant text-3xl font-bold text-gray-900 mb-4">
-              ✨ Envoyez-nous un Message
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais.
-            </p>
-          </div>
-
-          {isSubmitted ? (
-            <div className="bg-gradient-to-br from-soft-pink to-light-pink rounded-lg p-8 text-center">
-              <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-8 w-8 text-primary-pink" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Message Envoyé !
-              </h3>
-              <p className="text-gray-700">
-                Merci pour votre message. Nous vous répondrons dans les plus brefs délais.
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-8 border border-gray-100">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom complet *
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all"
-                    placeholder="Votre nom complet"
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all"
-                    placeholder="votre@email.com"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                    Téléphone
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all"
-                    placeholder="Votre numéro de téléphone"
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                    Sujet *
-                  </label>
-                  <select
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all"
-                  >
-                    <option value="">Choisissez un sujet</option>
-                    {subjects.map((subject, index) => (
-                      <option key={index} value={subject}>
-                        {subject}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                  Message *
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleInputChange}
-                  required
-                  rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent transition-all resize-none"
-                  placeholder="Votre message..."
-                />
-              </div>
-
-              <div className="text-center">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="btn-primary text-lg px-8 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Envoi en cours...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center">
-                      Envoyer le Message
-                      <Send className="ml-2 h-5 w-5" />
-                    </span>
-                  )}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      </section>
-
-              {/* Queen&apos;s Glam Message */}
+      {/* Queen&apos;s Glam Message */}
       <section className="py-16 bg-gradient-to-r from-soft-pink to-light-pink">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="bg-white rounded-2xl p-12 shadow-lg">
