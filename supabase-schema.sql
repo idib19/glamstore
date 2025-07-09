@@ -470,8 +470,15 @@ CREATE POLICY "Staff can manage appointments" ON appointments
 CREATE POLICY "Staff can manage orders" ON orders
     FOR ALL USING (true);
 
+-- Reviews policies
 CREATE POLICY "Public can view approved reviews" ON reviews
     FOR SELECT USING (is_approved = true);
+
+CREATE POLICY "Public can insert reviews" ON reviews
+    FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Staff can manage all reviews" ON reviews
+    FOR ALL USING (true);
 
 -- ========================================
 -- SAMPLE DATA

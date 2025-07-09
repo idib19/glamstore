@@ -1,5 +1,6 @@
 import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
+import Image from 'next/image';
 import { Heart, Sparkles, Crown, Star, Quote } from 'lucide-react';
 
 export default function AboutPage() {
@@ -153,13 +154,24 @@ export default function AboutPage() {
             </div>
           </div>
           
-          {/* Placeholder for founder's picture */}
+          {/* Founder's picture */}
           <div className="mt-12 text-center">
-            <div className="bg-gradient-to-br from-soft-pink to-light-pink rounded-full w-48 h-48 mx-auto flex items-center justify-center">
-              <div className="text-center">
-                <Crown className="h-16 w-16 text-primary-pink mx-auto mb-2" />
-                <p className="text-gray-600 text-sm">Photo de la fondatrice</p>
+                          <div className="relative w-64 h-64 mx-auto">
+                <Image
+                  src="/founder.png"
+                  alt="Anouchka Abegue Nguema ép Madouma - Fondatrice de Queen's Glam"
+                  fill
+                  className="rounded-full object-cover shadow-lg"
+                  sizes="(max-width: 768px) 256px, 256px"
+                />
               </div>
+            <div className="mt-6 text-center">
+              <h3 className="font-elegant text-2xl font-bold text-gray-900 mb-2">
+                Anouchka Abegue Nguema ép Madouma
+              </h3>
+              <p className="text-primary-pink font-medium">
+                Fondatrice de Queen&apos;s Glam
+              </p>
             </div>
           </div>
         </div>

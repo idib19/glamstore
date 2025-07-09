@@ -4,17 +4,36 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Star, Palette, Settings } from 'lucide-react';
-import { categoriesApi } from '../lib/supabase';
+import Navigation from '../components/Navigation';
+import Footer from '../components/Footer';
+import { categoriesApi, reviewsApi } from '../lib/supabase';
 import { Database } from '../types/database';
 
 type ProductCategory = Database['public']['Tables']['product_categories']['Row'];
 type ServiceCategory = Database['public']['Tables']['service_categories']['Row'];
+type Review = Database['public']['Tables']['reviews']['Row'] & {
+  customers?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+  } | null;
+  products?: {
+    id: string;
+    name: string;
+  } | null;
+  services?: {
+    id: string;
+    name: string;
+  } | null;
+};
 
 export default function Home() {
   const [essentialProducts, setEssentialProducts] = useState<ProductCategory[]>([]);
   const [personalizedServices, setPersonalizedServices] = useState<ServiceCategory[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [servicesLoading, setServicesLoading] = useState(true);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -43,8 +62,22 @@ export default function Home() {
       }
     };
 
+    const fetchReviews = async () => {
+      try {
+        setReviewsLoading(true);
+        const data = await reviewsApi.getAll();
+        // Get first 3 reviews for the homepage
+        setReviews(data.slice(0, 3));
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
     fetchCategories();
     fetchServiceCategories();
+    fetchReviews();
   }, []);
 
   const getServiceIcon = (categoryName: string) => {
@@ -56,50 +89,51 @@ export default function Home() {
     return <Settings className="h-8 w-8 text-primary-pink" />;
   };
 
-  const testimonials = [
-    {
-      id: 1,
-      name: 'Marie L.',
-      rating: 5,
-      comment: 'Une expérience exceptionnelle ! Le personnel est aux petits soins et le résultat dépasse mes attentes.',
-      service: 'Soin du visage'
-    },
-    {
-      id: 2,
-      name: 'Sophie M.',
-      rating: 5,
-      comment: 'Queen\'s Glam est devenu mon institut de beauté préféré. Je me sens toujours belle et confiante après mes séances.',
-      service: 'Massage relaxant'
-    },
-    {
-      id: 3,
-      name: 'Julie D.',
-      rating: 5,
-      comment: 'Un service client impeccable et des résultats magnifiques. Je recommande vivement !',
-      service: 'Maquillage'
-    }
-  ];
+  // Convert reviews to testimonials format
+  const testimonials = reviews.map((review) => ({
+    id: review.id,
+    name: review.customer_name || `${review.customers?.first_name || ''} ${review.customers?.last_name || ''}`.trim() || 'Anonyme',
+    rating: review.rating,
+    comment: review.comment,
+    service: review.services?.name || review.products?.name || 'Service'
+  }));
 
   return (
     <div className="min-h-screen">
+      <Navigation />
+      
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-soft-pink via-light-pink to-pale-pink py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-20 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/queensglamherobillboard.png"
+            alt="Queen's Glam Hero Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Overlay for better text readability */}
+          <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+        </div>
+        
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="font-elegant text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            <h1 className="font-elegant text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-lg">
               Bienvenue dans ton
-              <span className="text-primary-pink block">Royaume de Beauté</span>
+              <span className="text-primary-pink block drop-shadow-lg">Royaume de Beauté</span>
             </h1>
-            <p className="text-xl text-gray-700 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl text-white mb-8 max-w-3xl mx-auto drop-shadow-lg">
               Découvre l&apos;univers Queen&apos;s Glam où chaque détail est pensé pour que tu te sentes belle, 
               confiante et rayonnante — à l&apos;intérieur comme à l&apos;extérieur.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/rendez-vous" className="btn-primary text-lg px-8 py-4 inline-flex items-center justify-center">
+              <Link href="/rendez-vous" className="btn-primary text-lg px-8 py-4 inline-flex items-center justify-center bg-primary-pink hover:bg-dark-pink text-white shadow-lg">
                 Prendre Rendez-vous
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
-              <Link href="/services" className="btn-secondary text-lg px-8 py-4 inline-flex items-center justify-center">
+              <Link href="/services" className="btn-secondary text-lg px-8 py-4 inline-flex items-center justify-center bg-white hover:bg-gray-100 text-gray-900 shadow-lg">
                 Découvrir nos Services
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
@@ -290,35 +324,80 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial) => (
-              <div key={testimonial.id} className="bg-white rounded-lg p-6 shadow-md">
-                <div className="flex items-center mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                  ))}
+          {reviewsLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-lg p-6 shadow-md">
+                  <div className="animate-pulse">
+                    <div className="flex items-center mb-4">
+                      {[...Array(5)].map((_, j) => (
+                        <div key={j} className="h-5 w-5 bg-gray-200 rounded mr-1"></div>
+                      ))}
+                    </div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div className="flex justify-between items-center">
+                      <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-gray-700 mb-4 italic">
-                  &quot;{testimonial.comment}&quot;
-                </p>
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-gray-900">
-                    {testimonial.name}
-                  </span>
-                  <span className="text-sm text-primary-pink">
-                    {testimonial.service}
-                  </span>
+              ))}
+            </div>
+          ) : testimonials.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {testimonials.map((testimonial) => (
+                <div key={testimonial.id} className="bg-white rounded-lg p-6 shadow-md">
+                  <div className="flex items-center mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-gray-700 mb-4 italic">
+                    &quot;{testimonial.comment}&quot;
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-900">
+                      {testimonial.name}
+                    </span>
+                    <span className="text-sm text-primary-pink">
+                      {testimonial.service}
+                    </span>
+                  </div>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="bg-white rounded-lg p-8 max-w-md mx-auto shadow-md">
+                <div className="mb-6">
+                  <div className="bg-soft-pink rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <Star className="h-8 w-8 text-primary-pink" />
+                  </div>
+                  <h3 className="font-elegant text-xl font-bold text-gray-900 mb-2">
+                    ✨ Sois la Première !
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Aucun avis pour le moment. Partage ton expérience Queen&apos;s Glam !
+                  </p>
+                </div>
+                <Link href="/avis" className="btn-primary text-sm px-6 py-3 inline-flex items-center justify-center">
+                  <Star className="h-4 w-4 mr-2" />
+                  Laisser un Avis
+                </Link>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
           
-          <div className="text-center mt-12">
-            <Link href="/avis" className="btn-secondary text-lg px-8 py-4 inline-flex items-center justify-center">
-              Voir Tous les Avis
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </div>
+          {testimonials.length > 0 && (
+            <div className="text-center mt-12">
+              <Link href="/avis" className="btn-secondary text-lg px-8 py-4 inline-flex items-center justify-center">
+                Voir Tous les Avis
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -341,6 +420,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+      
+      <Footer />
     </div>
   );
 }

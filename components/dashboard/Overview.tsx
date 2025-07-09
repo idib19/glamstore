@@ -8,7 +8,13 @@ import {
   Star, 
   TrendingUp
 } from 'lucide-react';
-import { servicesApi, ordersApi, appointmentsApi } from '../../lib/supabase';
+import { servicesApi, ordersApi, appointmentsApi, reviewsApi } from '../../lib/supabase';
+import { 
+  calculateMonthlyMetrics, 
+  calculateAppointmentMetrics, 
+  calculateServiceMetrics, 
+  calculateReviewMetrics 
+} from '../../lib/utils';
 
 interface Order {
   id: string;
@@ -45,12 +51,36 @@ interface Service {
   name: string;
   price: number;
   duration_minutes: number;
+  created_at?: string;
+}
+
+interface Review {
+  id: string;
+  customer_name: string;
+  rating: number;
+  comment: string;
+  is_approved: boolean;
+  created_at: string;
+  customers?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+  } | null;
+  products?: {
+    id: string;
+    name: string;
+  } | null;
+  services?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export default function Overview() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load all data for overview
@@ -62,16 +92,18 @@ export default function Overview() {
         setIsLoading(true);
         
         console.log('🔍 [Overview] Calling APIs in parallel...');
-        const [ordersData, appointmentsData, servicesData] = await Promise.all([
+        const [ordersData, appointmentsData, servicesData, reviewsData] = await Promise.all([
           ordersApi.getAll(),
           appointmentsApi.getAll(),
-          servicesApi.getAll()
+          servicesApi.getAll(),
+          reviewsApi.getAllForAdmin()
         ]);
         
         console.log('🔍 [Overview] All APIs completed:', {
           orders: ordersData?.length || 0,
           appointments: appointmentsData?.length || 0,
-          services: servicesData?.length || 0
+          services: servicesData?.length || 0,
+          reviews: reviewsData?.length || 0
         });
         
         console.log('🔍 [Overview] Appointments data sample:', appointmentsData?.slice(0, 2).map(apt => ({
@@ -85,6 +117,7 @@ export default function Overview() {
         setOrders(ordersData);
         setAppointments(appointmentsData);
         setServices(servicesData);
+        setReviews(reviewsData);
         
         console.log('✅ [Overview] Overview data loaded successfully');
       } catch (error) {
@@ -98,30 +131,40 @@ export default function Overview() {
     loadOverviewData();
   }, []);
 
+  // Calculate monthly metrics using utility functions
+  const ordersMetrics = calculateMonthlyMetrics(orders);
+  const appointmentsMetrics = calculateAppointmentMetrics(appointments);
+  const servicesMetrics = calculateServiceMetrics(services);
+  const reviewsMetrics = calculateReviewMetrics(reviews);
+
+  // Get pending reviews for display (unused but kept for future use)
+  // const pendingReviews = reviews.filter(review => !review.is_approved);
+
   // Calculate stats from real data
   const stats = [
     { 
       title: 'Commandes', 
-      value: orders.length.toString(), 
-      change: '+12%', 
+      value: ordersMetrics.thisMonth.toString(), 
+      change: ordersMetrics.formattedChange, 
       icon: ShoppingBag 
     },
     { 
       title: 'Rendez-vous', 
-      value: appointments.length.toString(), 
-      change: '+8%', 
+      value: appointmentsMetrics.thisMonth.toString(), 
+      change: appointmentsMetrics.formattedChange, 
       icon: Calendar 
     },
     { 
       title: 'Services', 
-      value: services.length.toString(), 
-      change: '+5%', 
+      value: servicesMetrics.thisMonth.toString(), 
+      change: servicesMetrics.formattedChange, 
       icon: Settings 
     },
     { 
       title: 'Avis', 
-      value: '89', 
-      change: '+15%', 
+      value: `${reviewsMetrics.thisMonth}/${reviewsMetrics.totalApproved}`, 
+      subtitle: `${reviewsMetrics.averageRating}/5 ⭐`,
+      change: reviewsMetrics.formattedChange, 
       icon: Star 
     }
   ];
@@ -210,6 +253,9 @@ export default function Overview() {
               <div>
                 <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                {stat.subtitle && (
+                  <p className="text-sm text-primary-pink font-medium">{stat.subtitle}</p>
+                )}
               </div>
               <div className="bg-soft-pink rounded-full p-3">
                 <stat.icon className="h-6 w-6 text-primary-pink" />
@@ -218,7 +264,9 @@ export default function Overview() {
             <div className="mt-4 flex items-center">
               <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
               <span className="text-sm text-green-600">{stat.change}</span>
-              <span className="text-sm text-gray-500 ml-1">vs mois dernier</span>
+              {stat.title !== 'Avis' && (
+                <span className="text-sm text-gray-500 ml-1">vs mois dernier</span>
+              )}
             </div>
           </div>
         ))}

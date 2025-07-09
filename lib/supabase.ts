@@ -999,6 +999,32 @@ export const reviewsApi = {
     return data
   },
 
+  // Get all reviews (for admin dashboard)
+  getAllForAdmin: async () => {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select(`
+        *,
+        customers (
+          id,
+          first_name,
+          last_name
+        ),
+        products (
+          id,
+          name
+        ),
+        services (
+          id,
+          name
+        )
+      `)
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    return data
+  },
+
   // Create new review
   create: async (review: Database['public']['Tables']['reviews']['Insert']) => {
     const { data, error } = await supabase

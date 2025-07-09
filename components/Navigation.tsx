@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Menu, X, ShoppingBag, Calendar, Instagram, Facebook, Twitter } from 'lucide-react';
 import { useCart } from '../lib/cartContext';
 
@@ -32,9 +33,13 @@ const Navigation = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary-pink rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">QG</span>
-              </div>
+              <Image 
+                src="/queensglamlogo.png" 
+                alt="Queen's Glam Logo" 
+                width={40}
+                height={40}
+                className="h-10 w-auto"
+              />
               <span className="text-xl font-bold text-gray-900">Queen&apos;s Glam</span>
             </Link>
           </div>

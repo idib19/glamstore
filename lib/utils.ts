@@ -118,3 +118,151 @@ export function formatDate(date: Date | string, locale: string = 'fr-FR'): strin
     day: 'numeric',
   });
 } 
+
+// Monthly metrics utilities
+export function getMonthRange(date: Date) {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+  return { start, end };
+}
+
+export function getPreviousMonthRange(date: Date) {
+  const prevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+  return getMonthRange(prevMonth);
+}
+
+export function calculatePercentageChange(current: number, previous: number): number {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return ((current - previous) / previous) * 100;
+}
+
+export function formatPercentageChange(change: number): string {
+  const sign = change > 0 ? '+' : '';
+  return `${sign}${change.toFixed(0)}%`;
+}
+
+// Monthly metrics calculation functions
+export function calculateMonthlyMetrics<T extends { created_at: string }>(
+  data: T[],
+  dateField: keyof T = 'created_at' as keyof T
+) {
+  const now = new Date();
+  const { start: thisMonthStart, end: thisMonthEnd } = getMonthRange(now);
+  const { start: lastMonthStart, end: lastMonthEnd } = getPreviousMonthRange(now);
+
+  const thisMonth = data.filter(item => {
+    const date = new Date(item[dateField] as string);
+    return date >= thisMonthStart && date <= thisMonthEnd;
+  });
+
+  const lastMonth = data.filter(item => {
+    const date = new Date(item[dateField] as string);
+    return date >= lastMonthStart && date <= lastMonthEnd;
+  });
+
+  const change = calculatePercentageChange(thisMonth.length, lastMonth.length);
+
+  return {
+    thisMonth: thisMonth.length,
+    lastMonth: lastMonth.length,
+    change,
+    formattedChange: formatPercentageChange(change)
+  };
+}
+
+export function calculateAppointmentMetrics(appointments: Array<{ appointment_date: string }>) {
+  const now = new Date();
+  const { start: thisMonthStart, end: thisMonthEnd } = getMonthRange(now);
+  const { start: lastMonthStart, end: lastMonthEnd } = getPreviousMonthRange(now);
+
+  const thisMonth = appointments.filter(apt => {
+    const date = new Date(apt.appointment_date);
+    return date >= thisMonthStart && date <= thisMonthEnd;
+  });
+
+  const lastMonth = appointments.filter(apt => {
+    const date = new Date(apt.appointment_date);
+    return date >= lastMonthStart && date <= lastMonthEnd;
+  });
+
+  const change = calculatePercentageChange(thisMonth.length, lastMonth.length);
+
+  return {
+    thisMonth: thisMonth.length,
+    lastMonth: lastMonth.length,
+    change,
+    formattedChange: formatPercentageChange(change)
+  };
+}
+
+export function calculateServiceMetrics(services: Array<{ created_at?: string }>) {
+  const now = new Date();
+  const { start: thisMonthStart, end: thisMonthEnd } = getMonthRange(now);
+  const { start: lastMonthStart, end: lastMonthEnd } = getPreviousMonthRange(now);
+
+  // Check if services have created_at field
+  const hasCreatedAt = services.some(service => service.created_at);
+
+  if (!hasCreatedAt) {
+    // If no created_at, show total count and 0% change
+    return {
+      thisMonth: services.length,
+      lastMonth: 0,
+      change: 0,
+      formattedChange: '+0%'
+    };
+  }
+
+  const thisMonth = services.filter(service => {
+    if (!service.created_at) return false;
+    const date = new Date(service.created_at);
+    return date >= thisMonthStart && date <= thisMonthEnd;
+  });
+
+  const lastMonth = services.filter(service => {
+    if (!service.created_at) return false;
+    const date = new Date(service.created_at);
+    return date >= lastMonthStart && date <= lastMonthEnd;
+  });
+
+  const change = calculatePercentageChange(thisMonth.length, lastMonth.length);
+
+  return {
+    thisMonth: thisMonth.length,
+    lastMonth: lastMonth.length,
+    change,
+    formattedChange: formatPercentageChange(change)
+  };
+}
+
+export function calculateReviewMetrics(reviews: Array<{ created_at: string; is_approved: boolean; rating: number }>) {
+  const approvedReviews = reviews.filter(review => review.is_approved);
+  const now = new Date();
+  const { start: thisMonthStart, end: thisMonthEnd } = getMonthRange(now);
+  const { start: lastMonthStart, end: lastMonthEnd } = getPreviousMonthRange(now);
+
+  const thisMonth = approvedReviews.filter(review => {
+    const date = new Date(review.created_at);
+    return date >= thisMonthStart && date <= thisMonthEnd;
+  });
+
+  const lastMonth = approvedReviews.filter(review => {
+    const date = new Date(review.created_at);
+    return date >= lastMonthStart && date <= lastMonthEnd;
+  });
+
+  const change = calculatePercentageChange(thisMonth.length, lastMonth.length);
+  const averageRating = reviews.length > 0 
+    ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
+    : '0.0';
+
+  return {
+    thisMonth: thisMonth.length,
+    totalApproved: approvedReviews.length,
+    totalReviews: reviews.length,
+    lastMonth: lastMonth.length,
+    change,
+    formattedChange: formatPercentageChange(change),
+    averageRating
+  };
+} 

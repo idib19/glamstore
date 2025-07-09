@@ -22,6 +22,7 @@ import Services from '../../components/dashboard/Services';
 import Orders from '../../components/dashboard/Orders';
 import Appointments from '../../components/dashboard/Appointments';
 import Customers from '../../components/dashboard/Customers';
+import Reviews from '../../components/dashboard/Reviews';
 import Settings from '../../components/dashboard/Settings';
 
 import { 
@@ -31,7 +32,8 @@ import {
   Users, 
   Eye,
   Package,
-  LogOut
+  LogOut,
+  MessageCircle
 } from 'lucide-react';
 
 type Service = Database['public']['Tables']['services']['Row'];
@@ -147,6 +149,7 @@ export default function DashboardPage() {
     { id: 'orders', name: 'Commandes', icon: ShoppingBag },
     { id: 'appointments', name: 'Rendez-vous', icon: Calendar },
     { id: 'customers', name: 'Clients', icon: Users },
+    { id: 'reviews', name: 'Avis', icon: MessageCircle },
     { id: 'settings', name: 'Paramètres', icon: SettingsIcon }
   ];
 
@@ -370,6 +373,7 @@ export default function DashboardPage() {
             )}
 
             {activeTab === 'customers' && <Customers />}
+            {activeTab === 'reviews' && <Reviews />}
             {activeTab === 'settings' && <Settings />}
           </div>
         </div>

@@ -1,106 +1,102 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
+import AddReviewModal from '../../components/AddReviewModal';
 import { Star, Quote, Heart, Crown, Sparkles, MessageCircle } from 'lucide-react';
+import { reviewsApi } from '../../lib/supabase';
+import { Database } from '../../types/database';
+
+type Review = Database['public']['Tables']['reviews']['Row'] & {
+  customers?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+  } | null;
+  products?: {
+    id: string;
+    name: string;
+  } | null;
+  services?: {
+    id: string;
+    name: string;
+  } | null;
+};
 
 export default function TestimonialsPage() {
-  const testimonials = [
-    {
-      id: 1,
-      name: 'Marie L.',
-      service: 'Pose de perruque',
-      rating: 5,
-      date: '15 décembre 2024',
-      comment: 'Queen&apos;s Glam m&apos;a transformée ! Je me sens belle et confiante. La pose de perruque est impeccable et naturelle.',
-      image: '/api/placeholder/100/100'
-    },
-    {
-      id: 2,
-      name: 'Sophie D.',
-      service: 'Manucure & pédicure',
-      rating: 5,
-      date: '12 décembre 2024',
-      comment: 'Un univers glamour où je me sens comme une reine. Service exceptionnel ! Les ongles sont parfaits.',
-      image: '/api/placeholder/100/100'
-    },
-    {
-      id: 3,
-      name: 'Claire M.',
-      service: 'Lip Gloss Ultra Hydratant',
-      rating: 5,
-      date: '10 décembre 2024',
-      comment: 'Les lip gloss Queen&apos;s Glam sont magiques ! Je ne peux plus m&apos;en passer. Texture parfaite et couleurs sublimes.',
-      image: '/api/placeholder/100/100'
-    },
-    {
-      id: 4,
-      name: 'Julie R.',
-      service: 'Coiffure de perruque',
-      rating: 5,
-      date: '8 décembre 2024',
-      comment: 'Coiffure de perruque parfaite ! Le style est exactement ce que je voulais. Professionnalisme et créativité.',
-      image: '/api/placeholder/100/100'
-    },
-    {
-      id: 5,
-      name: 'Anne S.',
-      service: 'Masque à Lèvres',
-      rating: 5,
-      date: '5 décembre 2024',
-      comment: 'Le masque à lèvres est un game-changer ! Mes lèvres sont plus douces et hydratées. Rituel du soir parfait.',
-      image: '/api/placeholder/100/100'
-    },
-    {
-      id: 6,
-      name: 'Isabelle T.',
-      service: 'Soins de perruque',
-      rating: 5,
-      date: '3 décembre 2024',
-      comment: 'Remise à neuf de ma perruque favorite ! Elle est comme neuve. Service de qualité et attention aux détails.',
-      image: '/api/placeholder/100/100'
-    },
-    {
-      id: 7,
-      name: 'Nathalie B.',
-      service: 'Lip Gloss Fini Matte',
-      rating: 5,
-      date: '1 décembre 2024',
-      comment: 'Le fini matte est élégant et confortable. Tenue parfaite toute la journée. Je recommande !',
-      image: '/api/placeholder/100/100'
-    },
-    {
-      id: 8,
-      name: 'Caroline F.',
-      service: 'Pose de perruque',
-      rating: 5,
-      date: '28 novembre 2024',
-      comment: 'Pose frontale lace wig impeccable ! Les baby hair sont naturels. Je me sens magnifique.',
-      image: '/api/placeholder/100/100'
-    },
-    {
-      id: 9,
-      name: 'Laurence P.',
-      service: 'Perruques Naturelles',
-      rating: 5,
-      date: '25 novembre 2024',
-      comment: 'Perruque naturelle de qualité exceptionnelle ! Confortable et facile à coiffer. Effet "flawless" garanti.',
-      image: '/api/placeholder/100/100'
-    },
-    {
-      id: 10,
-      name: 'Valérie M.',
-      service: 'Ensemble Queen&apos;s Glam',
-      rating: 5,
-      date: '22 novembre 2024',
-      comment: 'Expérience Queen&apos;s Glam complète ! Produits et services au top. Je me sens comme une vraie reine.',
-      image: '/api/placeholder/100/100'
-    }
-  ];
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Fetch reviews from database
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setLoading(true);
+        const reviewsData = await reviewsApi.getAll();
+        setReviews(reviewsData);
+      } catch (err) {
+        console.error('Error fetching reviews:', err);
+        setError('Erreur lors du chargement des avis');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, []);
+
+  const handleReviewSubmitted = () => {
+    // Refresh reviews after a new one is submitted
+    const fetchReviews = async () => {
+      try {
+        const reviewsData = await reviewsApi.getAll();
+        setReviews(reviewsData);
+      } catch (err) {
+        console.error('Error refreshing reviews:', err);
+      }
+    };
+    fetchReviews();
+  };
+
+  // Use real reviews from database
+  const testimonials = reviews.map((review) => ({
+    id: review.id,
+    name: review.customer_name || `${review.customers?.first_name || ''} ${review.customers?.last_name || ''}`.trim() || 'Anonyme',
+    service: review.services?.name || review.products?.name || 'Service',
+    rating: review.rating,
+    date: new Date(review.created_at).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }),
+    comment: review.comment,
+    image: '/api/placeholder/100/100'
+  }));
 
   const stats = [
-    { number: '5.0', label: 'Note moyenne', icon: <Star className="h-8 w-8 text-primary-pink" /> },
-    { number: '100%', label: 'Satisfaction', icon: <Heart className="h-8 w-8 text-primary-pink" /> },
-    { number: '✨', label: 'Reines satisfaites', icon: <Crown className="h-8 w-8 text-primary-pink" /> },
-    { number: 'Queen&apos;s', label: 'Glam Family', icon: <Sparkles className="h-8 w-8 text-primary-pink" /> }
+    { 
+      number: testimonials.length > 0 ? (testimonials.reduce((sum, t) => sum + t.rating, 0) / testimonials.length).toFixed(1) : '0.0', 
+      label: 'Note moyenne', 
+      icon: <Star className="h-8 w-8 text-primary-pink" /> 
+    },
+    { 
+      number: testimonials.length > 0 ? '100%' : '0%', 
+      label: 'Satisfaction', 
+      icon: <Heart className="h-8 w-8 text-primary-pink" /> 
+    },
+    { 
+      number: testimonials.length > 0 ? '✨' : '0', 
+      label: 'Reines satisfaites', 
+      icon: <Crown className="h-8 w-8 text-primary-pink" /> 
+    },
+    { 
+      number: testimonials.length > 0 ? 'Queen\'s' : '0', 
+      label: 'Glam Family', 
+      icon: <Sparkles className="h-8 w-8 text-primary-pink" /> 
+    }
   ];
 
   const services = [
@@ -113,7 +109,7 @@ export default function TestimonialsPage() {
     'Soins de perruque'
   ];
 
-  const averageRating = testimonials.reduce((sum, t) => sum + t.rating, 0) / testimonials.length;
+  const averageRating = testimonials.length > 0 ? testimonials.reduce((sum, t) => sum + t.rating, 0) / testimonials.length : 0;
 
   return (
     <div className="min-h-screen bg-white">
@@ -208,43 +204,89 @@ export default function TestimonialsPage() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {testimonials.map((testimonial) => (
-              <div key={testimonial.id} className="bg-gradient-to-br from-soft-pink to-light-pink rounded-2xl p-6 hover:shadow-lg transition-all">
-                <div className="bg-white rounded-xl p-6 h-full">
-                  {/* Rating */}
-                  <div className="flex items-center mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  
-                  {/* Quote */}
-                  <div className="mb-4">
-                    <Quote className="h-6 w-6 text-primary-pink mb-2" />
-                    <p className="text-gray-700 italic leading-relaxed">
-                      &quot;{testimonial.comment}&quot;
-                    </p>
-                  </div>
-                  
-                  {/* Client Info */}
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        {testimonial.name}
-                      </p>
-                      <p className="text-sm text-primary-pink">
-                        {testimonial.service}
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-pink mx-auto mb-4"></div>
+              <p className="text-gray-600">Chargement des avis...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-600 mb-4">{error}</p>
+              <p className="text-gray-600">Erreur lors du chargement des avis</p>
+            </div>
+          ) : testimonials.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {testimonials.map((testimonial) => (
+                <div key={testimonial.id} className="bg-gradient-to-br from-soft-pink to-light-pink rounded-2xl p-6 hover:shadow-lg transition-all">
+                  <div className="bg-white rounded-xl p-6 h-full">
+                    {/* Rating */}
+                    <div className="flex items-center mb-4">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                      ))}
+                    </div>
+                    
+                    {/* Quote */}
+                    <div className="mb-4">
+                      <Quote className="h-6 w-6 text-primary-pink mb-2" />
+                      <p className="text-gray-700 italic leading-relaxed">
+                        &quot;{testimonial.comment}&quot;
                       </p>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {testimonial.date}
+                    
+                    {/* Client Info */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {testimonial.name}
+                        </p>
+                        <p className="text-sm text-primary-pink">
+                          {testimonial.service}
+                        </p>
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {testimonial.date}
+                      </div>
                     </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="bg-gradient-to-br from-soft-pink to-light-pink rounded-2xl p-12 max-w-2xl mx-auto">
+                <div className="bg-white rounded-xl p-8">
+                  <div className="mb-6">
+                    <div className="bg-soft-pink rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                      <MessageCircle className="h-10 w-10 text-primary-pink" />
+                    </div>
+                    <h3 className="font-elegant text-2xl font-bold text-gray-900 mb-4">
+                      ✨ Sois la Première !
+                    </h3>
+                    <p className="text-gray-600 mb-6 leading-relaxed">
+                      Aucun avis pour le moment. Sois la première reine à partager ton expérience Queen&apos;s Glam et inspire d&apos;autres femmes à découvrir notre univers de beauté !
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                      <Star className="h-4 w-4 text-yellow-400" />
+                      <span>Partage ton expérience</span>
+                      <Star className="h-4 w-4 text-yellow-400" />
+                    </div>
+                    
+                    <button 
+                      onClick={() => setIsModalOpen(true)}
+                      className="btn-primary text-lg px-8 py-4 inline-flex items-center justify-center"
+                    >
+                      <MessageCircle className="h-5 w-5 mr-2" />
+                      Laisser le Premier Avis
+                    </button>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -291,7 +333,10 @@ export default function TestimonialsPage() {
               Laisse ton avis et aide d&apos;autres reines à découvrir l&apos;expérience !
             </p>
             
-            <button className="bg-primary-pink text-white px-8 py-4 rounded-lg font-semibold hover:bg-dark-pink transition-all text-lg">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="bg-primary-pink text-white px-8 py-4 rounded-lg font-semibold hover:bg-dark-pink transition-all text-lg"
+            >
               ✨ Laisser un avis
             </button>
           </div>
@@ -337,6 +382,13 @@ export default function TestimonialsPage() {
           </div>
         </div>
       </section>
+
+      {/* Review Modal */}
+      <AddReviewModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onReviewSubmitted={handleReviewSubmitted}
+      />
 
       <Footer />
     </div>
