@@ -103,28 +103,17 @@ export default function Home() {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="relative py-20 overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/queensglamherobillboard.png"
-            alt="Queen's Glam Hero Background"
-            fill
-            className="object-cover"
-            priority
-          />
-          {/* Overlay for better text readability */}
-          <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-        </div>
-        
+      <section className="relative bg-gradient-to-br from-pale-pink to-soft-pink py-20 overflow-hidden">
+        {/* Remove Background Image */}
+        {/* Overlay for better text readability */}
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="font-elegant text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-lg">
+            <h1 className="font-elegant text-4xl md:text-6xl font-bold text-gray-900 mb-6 drop-shadow-lg">
               Bienvenue dans ton
               <span className="text-primary-pink block drop-shadow-lg">Royaume de Beauté</span>
             </h1>
-            <p className="text-xl text-white mb-8 max-w-3xl mx-auto drop-shadow-lg">
+            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto drop-shadow-lg">
               Découvre l&apos;univers Queen&apos;s Glam où chaque détail est pensé pour que tu te sentes belle, 
               confiante et rayonnante — à l&apos;intérieur comme à l&apos;extérieur.
             </p>

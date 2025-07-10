@@ -33,8 +33,8 @@ const Navigation = () => {
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center space-x-2">
               <Image 
-                src="/queensglamlogo.png" 
-                alt="Queen's Glam Logo" 
+                src="/logo.png" 
+                alt="Queen's Glam New Logo" 
                 width={40}
                 height={40}
                 className="h-10 w-auto"

@@ -7,12 +7,12 @@ export default function ServicesPage() {
   const services = [
     {
       id: 'manucure-pedicure',
-      title: '💅 Manucure & Pédicure – Pose d&apos;ongles',
+      title: '💅 Manucure & Pédicure – Pose d\'ongles',
       subtitle: 'Des mains et des pieds impeccables pour toutes les occasions.',
       icon: <Heart className="h-8 w-8 text-primary-pink" />,
       services: [
         {
-          name: 'Pose d&apos;ongles (gel ou capsules)',
+          name: 'Pose d\'ongles (gel ou capsules)',
           price: 'à partir de 45 $',
           description: 'Pose professionnelle avec gel ou capsules'
         },
