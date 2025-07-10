@@ -23,9 +23,11 @@ type ProductWithImages = Database['public']['Tables']['products']['Row'] & {
 
 interface ProductsTableProps {
   refreshTrigger?: number; // Add a trigger prop for manual refresh
+  onEditProduct?: (product: ProductWithImages) => void;
+  onViewProduct?: (product: ProductWithImages) => void;
 }
 
-export default function ProductsTable({ refreshTrigger }: ProductsTableProps) {
+export default function ProductsTable({ refreshTrigger, onEditProduct, onViewProduct }: ProductsTableProps) {
   const [products, setProducts] = useState<ProductWithImages[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -315,12 +317,14 @@ export default function ProductsTable({ refreshTrigger }: ProductsTableProps) {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
                         <button 
+                          onClick={() => onViewProduct?.(product)}
                           className="text-primary-pink hover:text-dark-pink transition-colors"
                           title="Voir les détails"
                         >
                           <Eye className="h-4 w-4" />
                         </button>
                         <button 
+                          onClick={() => onEditProduct?.(product)}
                           className="text-blue-600 hover:text-blue-900 transition-colors"
                           title="Modifier"
                         >

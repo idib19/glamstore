@@ -5,23 +5,44 @@ import { Plus, Folder, Package } from 'lucide-react';
 import ProductsTable from '../ProductsTable';
 import CategoriesTable from '../CategoriesTable';
 import AddCategoryModal from '../AddCategoryModal';
+import EditProductModal from '../EditProductModal';
+import ViewProductModal from '../ViewProductModal';
 import { Database } from '../../types/database';
 
 type ProductCategory = Database['public']['Tables']['product_categories']['Row'];
+type ProductWithImages = Database['public']['Tables']['products']['Row'] & {
+  product_categories: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  product_images: {
+    id: string;
+    image_url: string;
+    alt_text: string | null;
+    is_primary: boolean;
+    sort_order: number;
+  }[];
+};
 
 interface ProductsProps {
   isAddProductModalOpen: boolean;
   setIsAddProductModalOpen: (open: boolean) => void;
   refreshTrigger: number;
+  onProductUpdated?: () => void;
 }
 
 export default function Products({ 
   setIsAddProductModalOpen, 
-  refreshTrigger 
+  refreshTrigger,
+  onProductUpdated
 }: ProductsProps) {
   const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<ProductCategory | null>(null);
+  const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
+  const [isViewProductModalOpen, setIsViewProductModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<ProductWithImages | null>(null);
 
   const handleCategoryAdded = () => {
     // Refresh categories table
@@ -30,6 +51,22 @@ export default function Products({
   const handleCloseCategoryModal = () => {
     setIsAddCategoryModalOpen(false);
     setEditingCategory(null);
+  };
+
+  const handleEditProduct = (product: ProductWithImages) => {
+    setSelectedProduct(product);
+    setIsEditProductModalOpen(true);
+  };
+
+  const handleViewProduct = (product: ProductWithImages) => {
+    setSelectedProduct(product);
+    setIsViewProductModalOpen(true);
+  };
+
+  const handleProductUpdated = () => {
+    // Refresh products table
+    console.log('Product updated successfully');
+    onProductUpdated?.();
   };
 
   return (
@@ -80,6 +117,8 @@ export default function Products({
               </div>
               <ProductsTable 
                 refreshTrigger={refreshTrigger}
+                onEditProduct={handleEditProduct}
+                onViewProduct={handleViewProduct}
               />
             </div>
           ) : (
@@ -107,6 +146,21 @@ export default function Products({
         onClose={handleCloseCategoryModal}
         onCategoryAdded={handleCategoryAdded}
         editingCategory={editingCategory}
+      />
+
+      {/* Edit Product Modal */}
+      <EditProductModal
+        isOpen={isEditProductModalOpen}
+        onClose={() => setIsEditProductModalOpen(false)}
+        product={selectedProduct}
+        onProductUpdated={handleProductUpdated}
+      />
+
+      {/* View Product Modal */}
+      <ViewProductModal
+        isOpen={isViewProductModalOpen}
+        onClose={() => setIsViewProductModalOpen(false)}
+        product={selectedProduct}
       />
     </div>
   );

@@ -216,6 +216,11 @@ export default function DashboardPage() {
     console.log('Product added successfully - refreshing table');
   };
 
+  const handleProductUpdated = () => {
+    setRefreshTrigger(prev => prev + 1);
+    console.log('Product updated successfully - refreshing table');
+  };
+
   const handleServiceAdded = () => {
     loadServices();
     console.log('Service added successfully');
@@ -349,6 +354,7 @@ export default function DashboardPage() {
                 isAddProductModalOpen={isAddProductModalOpen}
                 setIsAddProductModalOpen={setIsAddProductModalOpen}
                 refreshTrigger={refreshTrigger}
+                onProductUpdated={handleProductUpdated}
               />
             )}
 

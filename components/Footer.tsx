@@ -33,19 +33,21 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="lg:col-span-1">
-            <div className="mb-6">
-              <h3 className="font-elegant text-2xl font-bold text-primary-pink mb-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-primary-pink rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">QG</span>
+            <Link href="/dashboard" className="block hover:opacity-80 transition-opacity mb-6">
+              <div className="mb-6">
+                <h3 className="font-elegant text-2xl font-bold text-primary-pink mb-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-primary-pink rounded-lg flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">QG</span>
+                    </div>
+                    <span className="text-xl font-bold text-gray-900">Queen&apos;s Glam</span>
                   </div>
-                  <span className="text-xl font-bold text-gray-900">Queen&apos;s Glam</span>
-                </div>
-              </h3>
-              <p className="text-gray-300 text-sm leading-relaxed">
-                Votre destination beauté et bien-être. Nous vous accompagnons dans votre quête de beauté naturelle et authentique.
-              </p>
-            </div>
+                </h3>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  Votre destination beauté et bien-être. Nous vous accompagnons dans votre quête de beauté naturelle et authentique.
+                </p>
+              </div>
+            </Link>
             
             {/* Social Links */}
             <div className="flex space-x-4">
@@ -115,7 +117,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="h-5 w-5 text-primary-pink" />
-                <span>contact@queensglam.fr</span>
+                <span>admin@queensglam.ca</span>
               </div>
             </div>
 
