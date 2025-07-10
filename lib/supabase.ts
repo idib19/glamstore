@@ -4,9 +4,23 @@ import { Database } from '../types/database'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+// Debug environment variables (only in development)
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔍 [supabase.ts] Environment check:', {
+    hasUrl: !!supabaseUrl,
+    hasKey: !!supabaseAnonKey,
+    urlLength: supabaseUrl?.length || 0,
+    keyLength: supabaseAnonKey?.length || 0
+  });
+}
+
 // Validate environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Supabase environment variables are not configured');
+  console.error('❌ [supabase.ts] Missing environment variables:', {
+    NEXT_PUBLIC_SUPABASE_URL: supabaseUrl,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey ? '[HIDDEN]' : 'MISSING'
+  });
+  throw new Error('Supabase environment variables are not configured. Please check your .env.local file.');
 }
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
@@ -405,15 +419,35 @@ export const servicesApi = {
 
   // Update service
   update: async (id: string, updates: Database['public']['Tables']['services']['Update']) => {
-    const { data, error } = await supabase
-      .from('services')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single()
+    console.log('🔍 [servicesApi.update] Updating service:', { id, updates });
     
-    if (error) throw error
-    return data
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+      
+      console.log('🔍 [servicesApi.update] Supabase response:', { data, error });
+      
+      if (error) {
+        console.error('❌ [servicesApi.update] Supabase error:', error);
+        console.error('❌ [servicesApi.update] Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+      
+      console.log('✅ [servicesApi.update] Service updated successfully:', data);
+      return data;
+    } catch (error) {
+      console.error('❌ [servicesApi.update] Unexpected error:', error);
+      throw error;
+    }
   },
 
   // Delete service (soft delete)

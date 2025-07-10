@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Save, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Save, Loader2, Upload, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 import { servicesApi, categoriesApi } from '../lib/supabase';
 
 interface Service {
@@ -11,6 +12,7 @@ interface Service {
   category_id: string | null;
   price: number;
   duration_minutes: number;
+  image_url: string | null;
   is_active: boolean;
   service_categories?: {
     id: string;
@@ -38,8 +40,15 @@ export default function EditServiceModal({ isOpen, onClose, service, onServiceUp
     description: '',
     category_id: '',
     price: 0,
-    duration_minutes: 30
+    duration_minutes: 30,
+    image_url: ''
   });
+  const [selectedImage, setSelectedImage] = useState<{
+    file: File;
+    preview: string;
+  } | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -50,8 +59,17 @@ export default function EditServiceModal({ isOpen, onClose, service, onServiceUp
           description: service.description || '',
           category_id: service.category_id || '',
           price: service.price,
-          duration_minutes: service.duration_minutes
+          duration_minutes: service.duration_minutes,
+          image_url: service.image_url || ''
         });
+        if (service.image_url) {
+          setSelectedImage({
+            file: new File([], ''),
+            preview: service.image_url
+          });
+        } else {
+          setSelectedImage(null);
+        }
       }
     }
   }, [isOpen, service]);
@@ -65,27 +83,79 @@ export default function EditServiceModal({ isOpen, onClose, service, onServiceUp
     }
   };
 
+  const handleImageUpload = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // For now, we'll use a placeholder URL. In a real implementation,
+    // you would upload to your storage service (Supabase Storage, AWS S3, etc.)
+    // and return the actual URL
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSelectedImage({
+          file,
+          preview: reader.result as string
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!service) return;
 
     setIsLoading(true);
+    setIsUploading(true);
+    
     try {
-      await servicesApi.update(service.id, {
+      let imageUrl = formData.image_url;
+      
+      // Upload new image if selected
+      if (selectedImage && selectedImage.file.size > 0) {
+        imageUrl = await handleImageUpload(selectedImage.file);
+      }
+
+      const updateData = {
         name: formData.name,
         description: formData.description || null,
         category_id: formData.category_id || null,
         price: formData.price,
-        duration_minutes: formData.duration_minutes
-      });
+        duration_minutes: formData.duration_minutes,
+        image_url: imageUrl
+      };
+
+      console.log('Updating service with data:', updateData);
+      console.log('Service ID:', service.id);
+
+      const result = await servicesApi.update(service.id, updateData);
+      console.log('Update result:', result);
 
       onServiceUpdated();
       onClose();
     } catch (error) {
       console.error('Error updating service:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace',
+        error: error
+      });
       alert('Erreur lors de la mise à jour du service');
     } finally {
       setIsLoading(false);
+      setIsUploading(false);
     }
   };
 
@@ -105,6 +175,62 @@ export default function EditServiceModal({ isOpen, onClose, service, onServiceUp
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Image Upload Section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Image du service
+            </label>
+            <div className="space-y-3">
+              {/* Current Image Preview */}
+              {(selectedImage?.preview || formData.image_url) && (
+                <div className="relative">
+                  <Image
+                    src={selectedImage?.preview || formData.image_url || ''}
+                    alt="Service preview"
+                    width={200}
+                    height={150}
+                    className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedImage(null);
+                      setFormData({ ...formData, image_url: '' });
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+              
+              {/* Upload Button */}
+              <div className="flex items-center justify-center w-full">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    {isUploading ? (
+                      <Loader2 className="w-8 h-8 mb-2 text-gray-400 animate-spin" />
+                    ) : (
+                      <Upload className="w-8 h-8 mb-2 text-gray-400" />
+                    )}
+                    <p className="mb-2 text-sm text-gray-500">
+                      <span className="font-semibold">Cliquez pour télécharger</span> ou glissez-déposez
+                    </p>
+                    <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu'à 10MB</p>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    disabled={isUploading}
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nom du service

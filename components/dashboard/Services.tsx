@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Folder, Settings } from 'lucide-react';
+import { Plus, Edit, Trash2, Folder, Settings, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 import { servicesApi } from '../../lib/supabase';
 import ConfirmDialog from '../ConfirmDialog';
 import ServiceCategoriesTable from '../ServiceCategoriesTable';
@@ -17,6 +18,7 @@ interface Service {
   category_id: string | null;
   price: number;
   duration_minutes: number;
+  image_url: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -30,9 +32,10 @@ interface Service {
 interface ServicesProps {
   onAddService: () => void;
   onEditService: (service: Service) => void;
+  refreshTrigger?: number;
 }
 
-export default function Services({ onAddService, onEditService }: ServicesProps) {
+export default function Services({ onAddService, onEditService, refreshTrigger }: ServicesProps) {
   const [activeTab, setActiveTab] = useState<'services' | 'categories'>('services');
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,7 +67,7 @@ export default function Services({ onAddService, onEditService }: ServicesProps)
     if (activeTab === 'services') {
       loadServices();
     }
-  }, [activeTab]);
+  }, [activeTab, refreshTrigger]);
 
   // Service actions
   const handleDeleteService = async (serviceId: string) => {
@@ -153,6 +156,9 @@ export default function Services({ onAddService, onEditService }: ServicesProps)
                     <thead>
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Image
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Service
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -172,13 +178,30 @@ export default function Services({ onAddService, onEditService }: ServicesProps)
                     <tbody className="bg-white divide-y divide-gray-200">
                       {services.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                          <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                             Aucun service trouvé
                           </td>
                         </tr>
                       ) : (
                         services.map((service) => (
                           <tr key={service.id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                {service.image_url ? (
+                                  <Image
+                                    src={service.image_url}
+                                    alt={service.name}
+                                    width={48}
+                                    height={48}
+                                    className="h-12 w-12 object-cover rounded-lg border border-gray-200"
+                                  />
+                                ) : (
+                                  <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                    <ImageIcon className="h-6 w-6 text-gray-400" />
+                                  </div>
+                                )}
+                              </div>
+                            </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm font-medium text-gray-900">{service.name}</div>
                               {service.description && (

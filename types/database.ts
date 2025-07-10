@@ -339,6 +339,7 @@ export interface Database {
           category_id: string | null
           price: number
           duration_minutes: number
+          image_url: string | null  // Changed to TEXT type to handle longer image data URLs
           is_active: boolean
           created_at: string
           updated_at: string
@@ -350,6 +351,7 @@ export interface Database {
           category_id?: string | null
           price: number
           duration_minutes: number
+          image_url?: string | null  // Changed to TEXT type to handle longer image data URLs
           is_active?: boolean
           created_at?: string
           updated_at?: string
@@ -361,6 +363,7 @@ export interface Database {
           category_id?: string | null
           price?: number
           duration_minutes?: number
+          image_url?: string | null  // Changed to TEXT type to handle longer image data URLs
           is_active?: boolean
           created_at?: string
           updated_at?: string

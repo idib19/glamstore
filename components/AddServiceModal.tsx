@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Plus, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Plus, Loader2, Upload } from 'lucide-react';
+import Image from 'next/image';
 import { servicesApi, categoriesApi } from '../lib/supabase';
 import type { Database } from '../types/database';
 
@@ -21,8 +22,15 @@ export default function AddServiceModal({ isOpen, onClose, onServiceAdded }: Add
     description: '',
     category_id: '',
     price: 0,
-    duration_minutes: 30
+    duration_minutes: 30,
+    image_url: ''
   });
+  const [selectedImage, setSelectedImage] = useState<{
+    file: File;
+    preview: string;
+  } | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -33,8 +41,10 @@ export default function AddServiceModal({ isOpen, onClose, onServiceAdded }: Add
         description: '',
         category_id: '',
         price: 0,
-        duration_minutes: 30
+        duration_minutes: 30,
+        image_url: ''
       });
+      setSelectedImage(null);
     }
   }, [isOpen]);
 
@@ -47,17 +57,54 @@ export default function AddServiceModal({ isOpen, onClose, onServiceAdded }: Add
     }
   };
 
+  const handleImageUpload = async (file: File): Promise<string> => {
+    // For now, we'll use a placeholder URL. In a real implementation,
+    // you would upload to your storage service (Supabase Storage, AWS S3, etc.)
+    // and return the actual URL
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSelectedImage({
+          file,
+          preview: reader.result as string
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setIsLoading(true);
+    setIsUploading(true);
+    
     try {
+      let imageUrl = '';
+      
+      // Upload image if selected
+      if (selectedImage && selectedImage.file.size > 0) {
+        imageUrl = await handleImageUpload(selectedImage.file);
+      }
+
       await servicesApi.create({
         name: formData.name,
         description: formData.description || null,
         category_id: formData.category_id || null,
         price: formData.price,
         duration_minutes: formData.duration_minutes,
+        image_url: imageUrl || null,
         is_active: true
       });
 
@@ -68,6 +115,7 @@ export default function AddServiceModal({ isOpen, onClose, onServiceAdded }: Add
       alert('Erreur lors de la création du service');
     } finally {
       setIsLoading(false);
+      setIsUploading(false);
     }
   };
 
@@ -87,6 +135,59 @@ export default function AddServiceModal({ isOpen, onClose, onServiceAdded }: Add
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Image Upload Section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Image du service
+            </label>
+            <div className="space-y-3">
+              {/* Image Preview */}
+              {selectedImage?.preview && (
+                <div className="relative">
+                  <Image
+                    src={selectedImage.preview}
+                    alt="Service preview"
+                    width={200}
+                    height={150}
+                    className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setSelectedImage(null)}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+              
+              {/* Upload Button */}
+              <div className="flex items-center justify-center w-full">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    {isUploading ? (
+                      <Loader2 className="w-8 h-8 mb-2 text-gray-400 animate-spin" />
+                    ) : (
+                      <Upload className="w-8 h-8 mb-2 text-gray-400" />
+                    )}
+                    <p className="mb-2 text-sm text-gray-500">
+                      <span className="font-semibold">Cliquez pour télécharger</span> ou glissez-déposez
+                    </p>
+                    <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu'à 10MB</p>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    disabled={isUploading}
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nom du service *

@@ -222,8 +222,8 @@ export default function DashboardPage() {
   };
 
   const handleServiceUpdated = () => {
-    loadServices();
-    console.log('Service updated successfully');
+    setRefreshTrigger(prev => prev + 1);
+    console.log('Service updated successfully - refreshing table');
   };
 
   const handleOrderUpdated = () => {
@@ -356,6 +356,7 @@ export default function DashboardPage() {
               <Services 
                 onAddService={() => setIsAddServiceModalOpen(true)}
                 onEditService={handleEditService}
+                refreshTrigger={refreshTrigger}
               />
             )}
 
