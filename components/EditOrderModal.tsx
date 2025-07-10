@@ -144,11 +144,11 @@ export default function EditOrderModal({ isOpen, onClose, order, onOrderUpdated 
             </div>
             <div>
               <h3 className="font-medium text-gray-900 mb-2">Montants</h3>
-              <p className="text-sm text-gray-600">Sous-total: {order.subtotal}€</p>
-              <p className="text-sm text-gray-600">Taxes: {order.tax_amount}€</p>
-              <p className="text-sm text-gray-600">Livraison: {order.shipping_amount}€</p>
-              <p className="text-sm text-gray-600">Réduction: {order.discount_amount}€</p>
-              <p className="font-medium text-gray-900">Total: {order.total_amount}€</p>
+                              <p className="text-sm text-gray-600">Sous-total: {order.subtotal} CAD</p>
+                <p className="text-sm text-gray-600">Taxes: {order.tax_amount} CAD</p>
+                <p className="text-sm text-gray-600">Livraison: {order.shipping_amount} CAD</p>
+                <p className="text-sm text-gray-600">Réduction: {order.discount_amount} CAD</p>
+                <p className="font-medium text-gray-900">Total: {order.total_amount} CAD</p>
             </div>
           </div>
         </div>
@@ -163,10 +163,10 @@ export default function EditOrderModal({ isOpen, onClose, order, onOrderUpdated 
                   <div>
                     <p className="font-medium text-gray-900">{item.product_name}</p>
                     <p className="text-sm text-gray-600">
-                      Quantité: {item.quantity} × {item.unit_price}€
+                      Quantité: {item.quantity} × {item.unit_price} CAD
                     </p>
                   </div>
-                  <p className="font-medium text-gray-900">{item.total_price}€</p>
+                                      <p className="font-medium text-gray-900">{item.total_price} CAD</p>
                 </div>
               ))}
             </div>

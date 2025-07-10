@@ -267,7 +267,7 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
                 Durée: {appointment.services?.duration_minutes || 30} min
               </p>
               <p className="font-medium text-gray-900">
-                Prix: {appointment.total_price}€
+                Prix: {appointment.total_price} CAD
               </p>
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
                 <option value="">Sélectionner un service</option>
                 {services.map((service) => (
                   <option key={service.id} value={service.id}>
-                    {service.name} - {service.price}€
+                    {service.name} - {service.price} CAD
                   </option>
                 ))}
               </select>

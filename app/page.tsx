@@ -6,11 +6,17 @@ import Image from 'next/image';
 import { ArrowRight, Star, Palette, Settings } from 'lucide-react';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
-import { categoriesApi, reviewsApi } from '../lib/supabase';
+import { categoriesApi, reviewsApi, servicesApi } from '../lib/supabase';
 import { Database } from '../types/database';
 
 type ProductCategory = Database['public']['Tables']['product_categories']['Row'];
-type ServiceCategory = Database['public']['Tables']['service_categories']['Row'];
+type Service = Database['public']['Tables']['services']['Row'] & {
+  service_categories?: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+};
 type Review = Database['public']['Tables']['reviews']['Row'] & {
   customers?: {
     id: string;
@@ -29,7 +35,7 @@ type Review = Database['public']['Tables']['reviews']['Row'] & {
 
 export default function Home() {
   const [essentialProducts, setEssentialProducts] = useState<ProductCategory[]>([]);
-  const [personalizedServices, setPersonalizedServices] = useState<ServiceCategory[]>([]);
+  const [personalizedServices, setPersonalizedServices] = useState<Service[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [servicesLoading, setServicesLoading] = useState(true);
@@ -49,14 +55,14 @@ export default function Home() {
       }
     };
 
-    const fetchServiceCategories = async () => {
+    const fetchServices = async () => {
       try {
         setServicesLoading(true);
-        const data = await categoriesApi.getServiceCategories();
-        // Get first 4 service categories as "personalized services"
+        const data = await servicesApi.getAll();
+        // Get first 4 services as "personalized services"
         setPersonalizedServices(data.slice(0, 4));
       } catch (error) {
-        console.error('Error fetching service categories:', error);
+        console.error('Error fetching services:', error);
       } finally {
         setServicesLoading(false);
       }
@@ -76,12 +82,12 @@ export default function Home() {
     };
 
     fetchCategories();
-    fetchServiceCategories();
+    fetchServices();
     fetchReviews();
   }, []);
 
-  const getServiceIcon = (categoryName: string) => {
-    const name = categoryName.toLowerCase();
+  const getServiceIcon = (serviceName: string) => {
+    const name = serviceName.toLowerCase();
     if (name.includes('soin')) return <Settings className="h-8 w-8 text-primary-pink" />;
     if (name.includes('massage')) return <Settings className="h-8 w-8 text-primary-pink" />;
     if (name.includes('maquillage')) return <Settings className="h-8 w-8 text-primary-pink" />;
@@ -248,12 +254,20 @@ export default function Home() {
                      <h3 className="text-lg font-semibold text-gray-900 mb-2 text-center">
                        {service.name}
                      </h3>
-                     <p className="text-gray-600 text-sm text-center mb-4">
+                     <p className="text-gray-600 text-sm text-center mb-3">
                        {service.description || 'Service personnalisé pour vous sentir belle et confiante'}
                      </p>
+                     <div className="flex justify-between items-center mb-4 text-sm">
+                       <span className="text-primary-pink font-semibold">
+                         {service.price} CAD
+                       </span>
+                       <span className="text-gray-500">
+                         {service.duration_minutes} min
+                       </span>
+                     </div>
                      <div className="text-center">
                        <Link
-                         href={`/services#${service.slug}`}
+                         href={`/services#${service.id}`}
                          className="text-primary-pink hover:text-dark-pink font-medium text-sm transition-all"
                        >
                          En savoir plus →
@@ -266,7 +280,7 @@ export default function Home() {
                      ) : (
              <div className="text-center py-12">
                <Settings className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-               <p className="text-gray-500">Aucun service personnalisé disponible pour le moment.</p>
+               <p className="text-gray-500">Aucun service disponible pour le moment.</p>
              </div>
            )}
            

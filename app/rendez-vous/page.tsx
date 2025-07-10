@@ -332,7 +332,7 @@ export default function RendezVousPage() {
               <p><strong>Date :</strong> {new Date(selectedDate).toLocaleDateString('fr-FR')}</p>
               <p><strong>Heure :</strong> {selectedTime}</p>
               <p><strong>Durée :</strong> {selectedService?.duration_minutes} minutes</p>
-              <p><strong>Prix :</strong> {selectedService?.price}€</p>
+              <p><strong>Prix :</strong> {selectedService?.price} CAD</p>
             </div>
 
             <div className="flex space-x-4">
@@ -428,7 +428,7 @@ export default function RendezVousPage() {
                         <p className="text-sm text-gray-600 mb-3">{service.description}</p>
                       )}
                       <div className="flex justify-between items-center">
-                        <span className="text-primary-pink font-semibold">{service.price}€</span>
+                        <span className="text-primary-pink font-semibold">{service.price} CAD</span>
                         <span className="text-sm text-gray-500">{service.duration_minutes} min</span>
                       </div>
                     </div>
@@ -485,7 +485,7 @@ export default function RendezVousPage() {
               {/* Selected Service Summary */}
               <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                 <h3 className="font-semibold text-gray-900 mb-2">Service sélectionné :</h3>
-                <p className="text-gray-600">{selectedService.name} - {selectedService.price}€ ({selectedService.duration_minutes} min)</p>
+                <p className="text-gray-600">{selectedService.name} - {selectedService.price} CAD ({selectedService.duration_minutes} min)</p>
               </div>
             </div>
           )}
@@ -600,7 +600,7 @@ export default function RendezVousPage() {
                   </div>
                 </div>
                 <div className="mt-2 pt-2 border-t border-gray-200">
-                  <strong>Prix :</strong> {selectedService.price}€
+                  <strong>Prix :</strong> {selectedService.price} CAD
                 </div>
               </div>
 

@@ -163,7 +163,7 @@ const generateAppointmentConfirmationHTML = (data: AppointmentEmailData): string
             </div>
             <div class="detail-row">
               <strong>Prix :</strong>
-              <span>${data.price}€</span>
+                              <span>${data.price} CAD</span>
             </div>
             <div class="detail-row">
               <strong>Numéro de RDV :</strong>
@@ -323,7 +323,7 @@ Détails de votre rendez-vous :
 - Date : ${formattedDate}
 - Heure : ${data.appointmentTime}
 - Durée : ${data.duration} minutes
-- Prix : ${data.price}€
+- Prix : ${data.price} CAD
 - Numéro de RDV : #${data.appointmentId.slice(0, 8)}
 
 Adresse : Queen&apos;s Glam, Gatineau (adresse précise communiquée par SMS)
@@ -394,8 +394,8 @@ const generateOrderConfirmationHTML = (data: OrderEmailData): string => {
     <tr>
       <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name}</td>
       <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.price.toFixed(2)}€</td>
-      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.total.toFixed(2)}€</td>
+                      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.price.toFixed(2)} CAD</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.total.toFixed(2)} CAD</td>
     </tr>
   `).join('');
 
@@ -449,7 +449,7 @@ const generateOrderConfirmationHTML = (data: OrderEmailData): string => {
                 ${orderItemsHTML}
                 <tr class="total-row">
                   <td colspan="3" style="text-align: right; padding: 15px;"><strong>Total</strong></td>
-                  <td style="text-align: right; padding: 15px;"><strong>${data.orderTotal.toFixed(2)}€</strong></td>
+                  <td style="text-align: right; padding: 15px;"><strong>${data.orderTotal.toFixed(2)} CAD</strong></td>
                 </tr>
               </tbody>
             </table>
@@ -479,7 +479,7 @@ const generateOrderConfirmationHTML = (data: OrderEmailData): string => {
 
 const generateOrderConfirmationText = (data: OrderEmailData): string => {
   const orderItemsText = data.orderItems.map(item => 
-    `- ${item.name} (x${item.quantity}) - ${item.total.toFixed(2)}€`
+    `- ${item.name} (x${item.quantity}) - ${item.total.toFixed(2)} CAD`
   ).join('\n');
 
   return `
@@ -496,7 +496,7 @@ Détails de votre commande :
 Articles commandés :
 ${orderItemsText}
 
-Total : ${data.orderTotal.toFixed(2)}€
+Total : ${data.orderTotal.toFixed(2)} CAD
 
 Adresse de livraison :
 ${data.shippingAddress}

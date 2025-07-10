@@ -13,12 +13,12 @@ export default function ServicesPage() {
       services: [
         {
           name: 'Pose d\'ongles (gel ou capsules)',
-          price: 'à partir de 45 $',
+          price: 'à partir de 45 CAD',
           description: 'Pose professionnelle avec gel ou capsules'
         },
         {
           name: 'Gel, Pédicure simple ou pose',
-          price: 'à partir de 25 $',
+          price: 'à partir de 25 CAD',
           description: 'Soin complet des pieds avec pose'
         }
       ],
@@ -32,17 +32,17 @@ export default function ServicesPage() {
       services: [
         {
           name: 'Pose perruque sans colle',
-          price: '30 $',
+          price: '30 CAD',
           description: 'Pose sécurisée sans adhésif'
         },
         {
           name: 'Pose perruque avec colle (colle fournie)',
-          price: '45 $',
+          price: '45 CAD',
           description: 'Pose durable avec adhésif professionnel'
         },
         {
           name: 'Pose frontale lace wig avec baby hair',
-          price: '55 $',
+          price: '55 CAD',
           description: 'Pose sophistiquée avec finitions naturelles'
         }
       ]
@@ -55,12 +55,12 @@ export default function ServicesPage() {
       services: [
         {
           name: 'Lissage ou bouclage simple',
-          price: '30 $',
+          price: '30 CAD',
           description: 'Stylisation basique selon vos préférences'
         },
         {
           name: 'Coiffure personnalisée (avec coupe ou stylisation spécifique)',
-          price: 'à partir de 40 $',
+          price: 'à partir de 40 CAD',
           description: 'Coiffure sur mesure avec coupe ou style spécial'
         }
       ]
@@ -73,12 +73,12 @@ export default function ServicesPage() {
       services: [
         {
           name: 'Shampoing + revitalisant + séchage',
-          price: '25 $',
+          price: '25 CAD',
           description: 'Nettoyage et soin de base'
         },
         {
           name: 'Remise à neuf complète (soin profond, coiffage)',
-          price: 'à partir de 50 $',
+          price: 'à partir de 50 CAD',
           description: 'Soin complet avec traitement en profondeur'
         }
       ]

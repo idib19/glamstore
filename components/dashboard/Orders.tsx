@@ -387,7 +387,7 @@ function OrderDetailsModal({ isOpen, onClose, order }: OrderDetailsModalProps) {
                             <p className="text-sm text-gray-600">SKU: {item.product_sku}</p>
                           )}
                           <p className="text-sm text-gray-600">
-                            Quantité: {item.quantity} × {item.unit_price.toFixed(2)}€
+                            Quantité: {item.quantity} × {item.unit_price.toFixed(2)} CAD
                           </p>
                           {item.products?.brand && (
                             <p className="text-xs text-gray-500">Marque: {item.products.brand}</p>
@@ -396,8 +396,8 @@ function OrderDetailsModal({ isOpen, onClose, order }: OrderDetailsModalProps) {
                         
                         {/* Price */}
                         <div className="text-right flex-shrink-0">
-                          <p className="font-semibold text-gray-900">{item.total_price.toFixed(2)}€</p>
-                          <p className="text-sm text-gray-600">Prix unitaire: {item.unit_price.toFixed(2)}€</p>
+                                                      <p className="font-semibold text-gray-900">{item.total_price.toFixed(2)} CAD</p>
+                            <p className="text-sm text-gray-600">Prix unitaire: {item.unit_price.toFixed(2)} CAD</p>
                         </div>
                       </div>
                     </div>
@@ -425,7 +425,7 @@ function OrderDetailsModal({ isOpen, onClose, order }: OrderDetailsModalProps) {
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-600">Valeur totale</p>
-                <p className="text-xl font-bold text-gray-900">{order.total_amount.toFixed(2)}€</p>
+                                    <p className="text-xl font-bold text-gray-900">{order.total_amount.toFixed(2)} CAD</p>
               </div>
             </div>
           </div>
@@ -436,26 +436,26 @@ function OrderDetailsModal({ isOpen, onClose, order }: OrderDetailsModalProps) {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-600">Sous-total</span>
-                <span className="font-medium">{order.subtotal.toFixed(2)}€</span>
+                                      <span className="font-medium">{order.subtotal.toFixed(2)} CAD</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Taxes</span>
-                <span className="font-medium">{order.tax_amount.toFixed(2)}€</span>
+                                      <span className="font-medium">{order.tax_amount.toFixed(2)} CAD</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Livraison</span>
-                <span className="font-medium">{order.shipping_amount.toFixed(2)}€</span>
+                                      <span className="font-medium">{order.shipping_amount.toFixed(2)} CAD</span>
               </div>
               {order.discount_amount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Réduction</span>
-                  <span className="font-medium">-{order.discount_amount.toFixed(2)}€</span>
+                                        <span className="font-medium">-{order.discount_amount.toFixed(2)} CAD</span>
                 </div>
               )}
               <div className="border-t border-gray-300 pt-3">
                 <div className="flex justify-between">
                   <span className="text-lg font-semibold text-gray-900">Total</span>
-                  <span className="text-lg font-bold text-gray-900">{order.total_amount.toFixed(2)}€</span>
+                                      <span className="text-lg font-bold text-gray-900">{order.total_amount.toFixed(2)} CAD</span>
                 </div>
               </div>
             </div>
@@ -556,7 +556,7 @@ export default function Orders({ onEditOrder }: OrdersProps) {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-gray-900">{order.total_amount}€</p>
+                        <p className="font-semibold text-gray-900">{order.total_amount} CAD</p>
                         <span className={`text-xs px-2 py-1 rounded-full ${
                           order.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                           order.status === 'delivered' ? 'bg-blue-100 text-blue-800' :

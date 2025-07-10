@@ -296,7 +296,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       // Calculate totals
       const subtotal = getCartTotal();
       const tax = subtotal * 0.20; // 20% TVA
-      const shipping = subtotal >= 50 ? 0 : 5.99; // Free shipping over 50€
+      const shipping = subtotal >= 50 ? 0 : 5.99; // Free shipping over 50 CAD
       const total = subtotal + tax + shipping;
 
       // Create order

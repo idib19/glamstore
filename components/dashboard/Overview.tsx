@@ -296,7 +296,7 @@ export default function Overview() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-gray-900">{order.total}€</p>
+                    <p className="font-semibold text-gray-900">{order.total} CAD</p>
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       order.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                       order.status === 'delivered' ? 'bg-blue-100 text-blue-800' :

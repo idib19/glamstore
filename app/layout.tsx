@@ -15,10 +15,10 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Queen&apos;s Glam - Beauté & Bien-être",
+  title: "Queen's Glam - Beauté & Bien-être",
   description: "Découvrez notre sélection de produits de beauté et services de bien-être",
   keywords: "beauté, bien-être, soins, produits cosmétiques, rendez-vous, France",
-  authors: [{ name: "Queen&apos;s Glam" }],
+  authors: [{ name: "Queen's Glam" }],
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },

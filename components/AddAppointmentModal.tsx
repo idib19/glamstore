@@ -203,7 +203,7 @@ export default function AddAppointmentModal({ isOpen, onClose, onAppointmentAdde
                 <option value="">Sélectionner un service</option>
                 {services.map((service) => (
                   <option key={service.id} value={service.id}>
-                    {service.name} - {service.price}€ ({service.duration_minutes} min)
+                    {service.name} - {service.price} CAD ({service.duration_minutes} min)
                   </option>
                 ))}
               </select>

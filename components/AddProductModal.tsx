@@ -592,7 +592,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Prix Normal (€) *
+                Prix Normal (CAD) *
               </label>
               <input
                 type="number"
@@ -612,7 +612,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Prix de Vente (€)
+                Prix de Vente (CAD)
               </label>
               <input
                 type="number"

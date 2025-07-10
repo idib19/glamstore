@@ -214,7 +214,7 @@ export default function Services({ onAddService, onEditService, refreshTrigger }
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{service.price}€</div>
+                              <div className="text-sm text-gray-900">{service.price} CAD</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm text-gray-900">{service.duration_minutes} min</div>

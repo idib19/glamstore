@@ -91,7 +91,7 @@ export default function CartPage() {
 
   const subtotal = getCartTotal();
   const tax = subtotal * 0.20; // 20% TVA
-  const shipping = subtotal >= 50 ? 0 : 5.99; // Free shipping over 50€
+  const shipping = subtotal >= 50 ? 0 : 5.99; // Free shipping over 50 CAD
   const total = subtotal + tax + shipping;
 
   if (isSubmitted && orderDetails) {
@@ -115,7 +115,7 @@ export default function CartPage() {
                 <h3 className="font-semibold text-gray-900 mb-3">Récapitulatif :</h3>
                 <div className="text-left space-y-2 text-sm">
                   <p><strong>Numéro de commande :</strong> {orderDetails.order_number}</p>
-                  <p><strong>Total :</strong> {orderDetails.total_amount.toFixed(2)}€</p>
+                  <p><strong>Total :</strong> {orderDetails.total_amount.toFixed(2)} CAD</p>
                   <p><strong>Articles :</strong> {getCartItemCount()}</p>
                   <p><strong>Email :</strong> {checkoutData.email}</p>
                 </div>
@@ -209,7 +209,7 @@ export default function CartPage() {
                         <p className="text-sm text-gray-600 mb-1">
                           {item.product.product_categories?.name}
                         </p>
-                        <p className="text-primary-pink font-bold">{item.product.price.toFixed(2)}€</p>
+                        <p className="text-primary-pink font-bold">{item.product.price.toFixed(2)} CAD</p>
                       </div>
                       
                       <div className="flex items-center space-x-2">
@@ -229,7 +229,7 @@ export default function CartPage() {
                       </div>
                       
                       <div className="text-right">
-                        <p className="font-bold text-gray-900">{(item.product.price * item.quantity).toFixed(2)}€</p>
+                        <p className="font-bold text-gray-900">{(item.product.price * item.quantity).toFixed(2)} CAD</p>
                         <button
                           onClick={() => removeFromCart(item.product.id)}
                           className="text-red-500 hover:text-red-700 transition-all mt-1"
@@ -253,20 +253,20 @@ export default function CartPage() {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span>Sous-total :</span>
-                    <span>{subtotal.toFixed(2)}€</span>
+                    <span>{subtotal.toFixed(2)} CAD</span>
                   </div>
                   <div className="flex justify-between">
                     <span>TVA (20%) :</span>
-                    <span>{tax.toFixed(2)}€</span>
+                    <span>{tax.toFixed(2)} CAD</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Livraison :</span>
-                    <span>{shipping === 0 ? 'Gratuite' : `${shipping.toFixed(2)}€`}</span>
+                    <span>{shipping === 0 ? 'Gratuite' : `${shipping.toFixed(2)} CAD`}</span>
                   </div>
                   <div className="border-t border-gray-300 pt-3">
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total :</span>
-                      <span className="text-primary-pink">{total.toFixed(2)}€</span>
+                      <span className="text-primary-pink">{total.toFixed(2)} CAD</span>
                     </div>
                   </div>
                 </div>
@@ -274,14 +274,14 @@ export default function CartPage() {
                 {subtotal < 50 && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                     <p className="text-sm text-blue-800">
-                      <strong>Livraison gratuite</strong> dès 50€ d&apos;achat ! 
-                      Il vous manque {(50 - subtotal).toFixed(2)}€.
+                                      <strong>Livraison gratuite</strong> dès 50 CAD d&apos;achat !
+                Il vous manque {(50 - subtotal).toFixed(2)} CAD.
                     </p>
                   </div>
                 )}
 
                 <p className="text-sm text-gray-600 mb-4">
-                  * Livraison gratuite dès 50€ d&apos;achat
+                  * Livraison gratuite dès 50 CAD d&apos;achat
                 </p>
               </div>
             </div>
@@ -460,7 +460,7 @@ export default function CartPage() {
                 <h3 className="font-semibold text-gray-900 mb-2">Informations importantes :</h3>
                 <ul className="text-sm text-gray-600 space-y-1">
                   <li>• Aucun paiement en ligne - confirmation manuelle par la fondatrice</li>
-                  <li>• Livraison gratuite dès 50€ d&apos;achat</li>
+                  <li>• Livraison gratuite dès 50 CAD d&apos;achat</li>
                   <li>• Délai de livraison : 3-5 jours ouvrés</li>
                   <li>• Vous recevrez un email de confirmation après validation</li>
                 </ul>

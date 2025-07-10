@@ -9,8 +9,8 @@ export default function ContactPage() {
     {
       icon: <Mail className="h-8 w-8 text-primary-pink" />,
       title: 'Email',
-      content: 'queensglam6@gmail.com',
-      link: 'mailto:queensglam6@gmail.com'
+      content: 'admin@queensglam.ca',
+      link: 'mailto:admin@queensglam.ca'
     },
     {
       icon: <Phone className="h-8 w-8 text-primary-pink" />,

@@ -244,7 +244,7 @@ export default function AppointmentDetails({ customerEmail, customerPhone }: App
                     </h4>
                     <div className="text-sm text-gray-600 space-y-1">
                       <p><strong>Durée :</strong> {appointment.services?.duration_minutes || 30} minutes</p>
-                      <p><strong>Prix :</strong> {appointment.total_price}€</p>
+                      <p><strong>Prix :</strong> {appointment.total_price} CAD</p>
                       <p><strong>Heure de fin :</strong> {appointment.end_time}</p>
                       {appointment.deposit_paid && (
                         <p className="text-green-600"><strong>Acompte payé</strong></p>

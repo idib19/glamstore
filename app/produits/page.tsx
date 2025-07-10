@@ -328,7 +328,7 @@ export default function ProductsPage() {
                       <div className="flex items-center space-x-2">
                         {product.price ? (
                           <span className="text-2xl font-bold text-primary-pink">
-                            {product.price.toFixed(2)} €
+                            {product.price.toFixed(2)} CAD
                           </span>
                         ) : (
                           <span className="text-lg font-semibold text-gray-700">
