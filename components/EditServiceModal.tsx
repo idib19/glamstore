@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Save, Loader2, Upload, Image as ImageIcon } from 'lucide-react';
+import { X, Save, Loader2, Upload } from 'lucide-react';
 import Image from 'next/image';
 import { servicesApi, categoriesApi } from '../lib/supabase';
 
@@ -216,7 +216,7 @@ export default function EditServiceModal({ isOpen, onClose, service, onServiceUp
                     <p className="mb-2 text-sm text-gray-500">
                       <span className="font-semibold">Cliquez pour télécharger</span> ou glissez-déposez
                     </p>
-                    <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu'à 10MB</p>
+                    <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu&apos;à 10MB</p>
                   </div>
                   <input
                     ref={fileInputRef}

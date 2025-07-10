@@ -173,7 +173,7 @@ export default function AddServiceModal({ isOpen, onClose, onServiceAdded }: Add
                     <p className="mb-2 text-sm text-gray-500">
                       <span className="font-semibold">Cliquez pour télécharger</span> ou glissez-déposez
                     </p>
-                    <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu'à 10MB</p>
+                    <p className="text-xs text-gray-500">PNG, JPG, GIF jusqu&apos;à 10MB</p>
                   </div>
                   <input
                     ref={fileInputRef}
