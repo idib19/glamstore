@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useCart } from '../../lib/cartContext';
 import { emailService } from '../../lib/emailService';
+import { notificationService } from '../../lib/notificationService';
 
 interface OrderDetails {
   id: string;
@@ -58,26 +59,95 @@ export default function CartPage() {
     try {
       // Create order in database
       const order = await createOrder(checkoutData);
-      setOrderDetails(order);
-
-      // Send confirmation email
+      
+      // Verify that the order was actually created in the database
+      if (!order || !order.id || !order.order_number) {
+        throw new Error('Order creation failed - invalid order data returned');
+      }
+      
+      // Additional verification: try to fetch the order from database to confirm it exists
       try {
-        await emailService.sendOrderConfirmation({
-          customerName: `${checkoutData.firstName} ${checkoutData.lastName}`,
-          customerEmail: checkoutData.email,
-          orderNumber: order.order_number,
-          orderTotal: order.total_amount,
-          orderItems: state.items.map(item => ({
-            name: item.product.name,
-            quantity: item.quantity,
-            price: item.product.price,
-            total: item.product.price * item.quantity
-          })),
-          shippingAddress: `${checkoutData.address}, ${checkoutData.postalCode} ${checkoutData.city}, ${checkoutData.country}`
-        });
-      } catch (emailError) {
-        console.error('Error sending confirmation email:', emailError);
-        // Don't fail the order if email fails
+        const { ordersApi } = await import('../../lib/supabase');
+        const verifiedOrder = await ordersApi.getById(order.id);
+        
+        if (!verifiedOrder) {
+          throw new Error('Order verification failed - order not found in database');
+        }
+        
+        // Update order details with verified data
+        setOrderDetails(verifiedOrder);
+        
+        // Only send emails and notifications if order is verified in database
+        try {
+          await Promise.all([
+            // Send order confirmation (automatically sends admin notification too)
+            emailService.sendOrderConfirmation({
+              customerName: `${checkoutData.firstName} ${checkoutData.lastName}`,
+              customerEmail: checkoutData.email,
+              orderNumber: verifiedOrder.order_number,
+              orderTotal: verifiedOrder.total_amount,
+              orderItems: state.items.map(item => ({
+                name: item.product.name,
+                quantity: item.quantity,
+                price: item.product.price,
+                total: item.product.price * item.quantity
+              })),
+              shippingAddress: `${checkoutData.address}, ${checkoutData.postalCode} ${checkoutData.city}, ${checkoutData.country}`
+            }),
+            // Create database notification
+            notificationService.createOrderConfirmationNotification({
+              customer_id: verifiedOrder.customer_id || '',
+              customer_name: `${checkoutData.firstName} ${checkoutData.lastName}`,
+              order_number: verifiedOrder.order_number,
+              order_total: verifiedOrder.total_amount,
+              order_items: state.items.map(item => ({
+                name: item.product.name,
+                quantity: item.quantity,
+                price: item.product.price,
+                total: item.product.price * item.quantity
+              }))
+            })
+          ]);
+        } catch (emailError) {
+          console.error('Error sending confirmation email or notification:', emailError);
+          // Don't fail the order if email/notification fails, but log it
+          
+          // Log the failed email attempt to database
+          try {
+            const { failedEmailService } = await import('../../lib/failedEmailService');
+            await failedEmailService.logFailedEmail({
+              email_type: 'order_confirmation',
+              recipient_email: checkoutData.email,
+              subject: 'Confirmation de votre commande - Queen\'s Glam',
+              error_message: emailError instanceof Error ? emailError.message : 'Unknown email error',
+              error_details: {
+                error: emailError,
+                stack: emailError instanceof Error ? emailError.stack : undefined
+              },
+              context_data: {
+                customerName: `${checkoutData.firstName} ${checkoutData.lastName}`,
+                orderNumber: verifiedOrder.order_number,
+                orderTotal: verifiedOrder.total_amount,
+                orderItems: state.items.map(item => ({
+                  name: item.product.name,
+                  quantity: item.quantity,
+                  price: item.product.price,
+                  total: item.product.price * item.quantity
+                })),
+                customerId: verifiedOrder.customer_id
+              }
+            });
+          } catch (logError) {
+            console.error('Error logging failed email to database:', logError);
+            // Don't fail the main operation if logging fails
+          }
+        }
+        
+      } catch (verificationError) {
+        console.error('Order verification failed:', verificationError);
+        // If verification fails, we should not proceed with emails
+        // The order might have been created but we can't confirm it
+        throw new Error('Order verification failed - please contact support');
       }
 
       setIsSubmitted(true);

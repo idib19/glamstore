@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, Save, Loader2 } from 'lucide-react';
 import { appointmentsApi, servicesApi, customersApi } from '../lib/supabase';
+import { emailService } from '../lib/emailService';
 import DatePicker from './DatePicker';
 import TimePicker from './TimePicker';
 
@@ -192,6 +193,14 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
       const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
       const endTimeString = endTime.toTimeString().slice(0, 5);
 
+      // Get customer and service details for email notifications
+      const selectedCustomer = customers.find(c => c.id === formData.customer_id);
+      const updatedService = services.find(s => s.id === formData.service_id);
+
+      // Check if appointment is being cancelled
+      const isBeingCancelled = appointment.status !== 'cancelled' && formData.status === 'cancelled';
+      const isStatusChanged = appointment.status !== formData.status;
+
       await appointmentsApi.update(appointment.id, {
         customer_id: formData.customer_id,
         service_id: formData.service_id,
@@ -203,6 +212,69 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
         total_price: formData.total_price,
         deposit_paid: formData.deposit_paid
       });
+
+      // Send email notifications based on status changes
+      if (selectedCustomer && updatedService) {
+        try {
+          if (isBeingCancelled) {
+            // Send cancellation email
+            await emailService.sendAppointmentCancellation({
+              customerName: `${selectedCustomer.first_name} ${selectedCustomer.last_name}`,
+              customerEmail: selectedCustomer.email,
+              serviceName: updatedService.name,
+              appointmentDate: formData.appointment_date,
+              appointmentTime: formData.start_time,
+              duration: updatedService.duration_minutes,
+              price: formData.total_price,
+              appointmentId: appointment.id
+            });
+          } else if (isStatusChanged && formData.status === 'confirmed') {
+            // Send confirmation email if status changed to confirmed
+            await emailService.sendAppointmentConfirmation({
+              customerName: `${selectedCustomer.first_name} ${selectedCustomer.last_name}`,
+              customerEmail: selectedCustomer.email,
+              serviceName: updatedService.name,
+              appointmentDate: formData.appointment_date,
+              appointmentTime: formData.start_time,
+              duration: updatedService.duration_minutes,
+              price: formData.total_price,
+              appointmentId: appointment.id
+            });
+          }
+        } catch (emailError) {
+          console.error('Error sending email notification:', emailError);
+          // Don't fail the update if email fails
+          
+          // Log the failed email attempt to database
+          try {
+            const { failedEmailService } = await import('../lib/failedEmailService');
+            await failedEmailService.logFailedEmail({
+              email_type: isBeingCancelled ? 'appointment_cancellation' : 'appointment_confirmation',
+              recipient_email: selectedCustomer.email,
+              subject: isBeingCancelled 
+                ? 'Annulation de votre rendez-vous - Queen\'s Glam'
+                : 'Confirmation de votre rendez-vous - Queen\'s Glam',
+              error_message: emailError instanceof Error ? emailError.message : 'Unknown email error',
+              error_details: {
+                error: emailError,
+                stack: emailError instanceof Error ? emailError.stack : undefined
+              },
+              context_data: {
+                customerName: `${selectedCustomer.first_name} ${selectedCustomer.last_name}`,
+                serviceName: updatedService.name,
+                appointmentDate: formData.appointment_date,
+                appointmentTime: formData.start_time,
+                appointmentId: appointment.id,
+                customerId: selectedCustomer.id,
+                action: isBeingCancelled ? 'cancellation' : 'confirmation'
+              }
+            });
+          } catch (logError) {
+            console.error('Error logging failed email to database:', logError);
+            // Don't fail the main operation if logging fails
+          }
+        }
+      }
 
       onAppointmentUpdated();
       onClose();

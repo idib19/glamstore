@@ -5,6 +5,7 @@ import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
 import { servicesApi, appointmentsApi, customersApi } from '../../lib/supabase';
 import { emailService } from '../../lib/emailService';
+import { notificationService } from '../../lib/notificationService';
 import { Calendar, Clock, User, CheckCircle, AlertCircle } from 'lucide-react';
 import DatePicker from '../../components/DatePicker';
 import TimePicker from '../../components/TimePicker';
@@ -19,14 +20,6 @@ interface Service {
     id: string;
     name: string;
   } | null;
-}
-
-interface Customer {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
 }
 
 export default function RendezVousPage() {
@@ -46,14 +39,8 @@ export default function RendezVousPage() {
     first_name: '',
     last_name: '',
     email: '',
-    phone: '',
-    isNewCustomer: true
+    phone: ''
   });
-
-  // Existing customer search
-  const [existingCustomers, setExistingCustomers] = useState<Customer[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   // Business hours (9 AM to 7 PM)
   const businessHours = {
@@ -124,44 +111,6 @@ export default function RendezVousPage() {
     }
   };
 
-  const searchCustomers = async (query: string) => {
-    if (query.length < 2) {
-      setExistingCustomers([]);
-      return;
-    }
-
-    try {
-      const allCustomers = await customersApi.getAll();
-      const filtered = allCustomers.filter(customer => 
-        customer.first_name.toLowerCase().includes(query.toLowerCase()) ||
-        customer.last_name.toLowerCase().includes(query.toLowerCase()) ||
-        customer.email.toLowerCase().includes(query.toLowerCase()) ||
-        customer.phone.includes(query)
-      );
-      setExistingCustomers(filtered.slice(0, 5)); // Limit to 5 results
-    } catch (error) {
-      console.error('Error searching customers:', error);
-    }
-  };
-
-  const handleCustomerSearch = (query: string) => {
-    setSearchQuery(query);
-    searchCustomers(query);
-  };
-
-  const selectExistingCustomer = (customer: Customer) => {
-    setSelectedCustomer(customer);
-    setCustomerForm({
-      first_name: customer.first_name,
-      last_name: customer.last_name,
-      email: customer.email,
-      phone: customer.phone,
-      isNewCustomer: false
-    });
-    setExistingCustomers([]);
-    setSearchQuery('');
-  };
-
   const handleServiceSelection = (service: Service) => {
     setSelectedService(service);
     setSelectedDate('');
@@ -217,12 +166,16 @@ export default function RendezVousPage() {
       setIsLoading(true);
       setBookingError('');
 
+      // Check if customer already exists by email
       let customerId: string;
-
-      // Create new customer if needed
-      if (selectedCustomer?.id) {
-        customerId = selectedCustomer.id;
+      const existingCustomer = await customersApi.getByEmail(customerForm.email);
+      
+      if (existingCustomer) {
+        // Use existing customer
+        customerId = existingCustomer.id;
+        console.log('Using existing customer:', existingCustomer.id);
       } else {
+        // Create new customer
         const newCustomer = await customersApi.create({
           first_name: customerForm.first_name,
           last_name: customerForm.last_name,
@@ -231,6 +184,7 @@ export default function RendezVousPage() {
           is_active: true
         });
         customerId = newCustomer.id;
+        console.log('Created new customer:', newCustomer.id);
       }
 
       // Calculate end time
@@ -247,10 +201,7 @@ export default function RendezVousPage() {
         end_time: endTimeString,
         status: 'scheduled',
         notes: null,
-        total_price: selectedService.price,
-        deposit_amount: 0,
-        deposit_paid: false,
-        reminder_sent: false
+        total_price: selectedService.price
       });
 
       // Send confirmation email
@@ -267,11 +218,26 @@ export default function RendezVousPage() {
         });
       } catch (emailError) {
         console.error('Error sending confirmation email:', emailError);
-        // Don't fail the booking if email fails
+        // Continue with booking even if email fails
+      }
+
+      // Create notification
+      try {
+        await notificationService.createAppointmentConfirmationNotification({
+          customer_id: customerId,
+          customer_name: `${customerForm.first_name} ${customerForm.last_name}`,
+          service_name: selectedService.name,
+          appointment_date: selectedDate,
+          appointment_time: selectedTime,
+          appointment_id: newAppointment.id,
+          price: selectedService.price
+        });
+      } catch (notificationError) {
+        console.error('Error creating notification:', notificationError);
+        // Continue with booking even if notification fails
       }
 
       setBookingSuccess(true);
-      setBookingStep(4);
     } catch (error) {
       console.error('Error creating appointment:', error);
       setBookingError('Erreur lors de la création du rendez-vous. Veuillez réessayer.');
@@ -285,19 +251,15 @@ export default function RendezVousPage() {
     setSelectedDate('');
     setSelectedTime('');
     setAvailableSlots([]);
+    setBookingStep(1);
+    setBookingSuccess(false);
+    setBookingError('');
     setCustomerForm({
       first_name: '',
       last_name: '',
       email: '',
-      phone: '',
-      isNewCustomer: true
+      phone: ''
     });
-    setSelectedCustomer(null);
-    setSearchQuery('');
-    setExistingCustomers([]);
-    setBookingStep(1);
-    setBookingSuccess(false);
-    setBookingError('');
   };
 
   const getMinDate = () => {
@@ -307,7 +269,7 @@ export default function RendezVousPage() {
 
   const getMaxDate = () => {
     const maxDate = new Date();
-    maxDate.setMonth(maxDate.getMonth() + 3); // Allow booking up to 3 months in advance
+    maxDate.setDate(maxDate.getDate() + 30); // 30 days from now
     return maxDate.toISOString().split('T')[0];
   };
 
@@ -498,90 +460,58 @@ export default function RendezVousPage() {
                 Vos informations
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Customer Search */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Rechercher un client existant (optionnel)
-                  </label>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => handleCustomerSearch(e.target.value)}
-                    placeholder="Nom, email ou téléphone..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-                  />
-                  
-                  {existingCustomers.length > 0 && (
-                    <div className="mt-2 border border-gray-200 rounded-md max-h-32 overflow-y-auto">
-                      {existingCustomers.map((customer) => (
-                        <div
-                          key={customer.id}
-                          onClick={() => selectExistingCustomer(customer)}
-                          className="px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                        >
-                          <div className="font-medium">{customer.first_name} {customer.last_name}</div>
-                          <div className="text-sm text-gray-600">{customer.email} - {customer.phone}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Prénom *
+                    </label>
+                    <input
+                      type="text"
+                      value={customerForm.first_name}
+                      onChange={(e) => handleCustomerFormChange('first_name', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nom *
+                    </label>
+                    <input
+                      type="text"
+                      value={customerForm.last_name}
+                      onChange={(e) => handleCustomerFormChange('last_name', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
+                      required
+                    />
+                  </div>
                 </div>
 
-                {/* Customer Form */}
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Prénom *
-                      </label>
-                      <input
-                        type="text"
-                        value={customerForm.first_name}
-                        onChange={(e) => handleCustomerFormChange('first_name', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nom *
-                      </label>
-                      <input
-                        type="text"
-                        value={customerForm.last_name}
-                        onChange={(e) => handleCustomerFormChange('last_name', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-                        required
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    value={customerForm.email}
+                    onChange={(e) => handleCustomerFormChange('email', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
+                    required
+                  />
+                </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      value={customerForm.email}
-                      onChange={(e) => handleCustomerFormChange('email', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Téléphone *
-                    </label>
-                    <input
-                      type="tel"
-                      value={customerForm.phone}
-                      onChange={(e) => handleCustomerFormChange('phone', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-                      required
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Téléphone *
+                  </label>
+                  <input
+                    type="tel"
+                    value={customerForm.phone}
+                    onChange={(e) => handleCustomerFormChange('phone', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
+                    required
+                  />
                 </div>
               </div>
 

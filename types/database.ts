@@ -679,7 +679,7 @@ export interface Database {
         Row: {
           id: string
           customer_id: string
-          type: 'appointment_reminder' | 'appointment_details_update' | 'order_update' | 'promotion' | 'birthday' | 'system'
+          type: 'appointment_reminder' | 'appointment_confirmation' | 'appointment_details_update' | 'order_update' | 'order_confirmation' | 'promotion' | 'birthday' | 'system'
           title: string
           message: string
           is_read: boolean
@@ -689,7 +689,7 @@ export interface Database {
         Insert: {
           id?: string
           customer_id: string
-          type: 'appointment_reminder' | 'appointment_details_update' | 'order_update' | 'promotion' | 'birthday' | 'system'
+          type: 'appointment_reminder' | 'appointment_confirmation' | 'appointment_details_update' | 'order_update' | 'order_confirmation' | 'promotion' | 'birthday' | 'system'
           title: string
           message: string
           is_read?: boolean
@@ -699,12 +699,65 @@ export interface Database {
         Update: {
           id?: string
           customer_id?: string
-          type?: 'appointment_reminder' | 'appointment_details_update' | 'order_update' | 'promotion' | 'birthday' | 'system'
+          type?: 'appointment_reminder' | 'appointment_confirmation' | 'appointment_details_update' | 'order_update' | 'order_confirmation' | 'promotion' | 'birthday' | 'system'
           title?: string
           message?: string
           is_read?: boolean
           sent_at?: string
           read_at?: string | null
+        }
+      }
+      failed_emails: {
+        Row: {
+          id: string
+          email_type: string
+          recipient_email: string
+          subject: string | null
+          error_message: string
+          error_details: any | null
+          context_data: any | null
+          retry_count: number
+          last_retry_at: string | null
+          is_resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          resolution_notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          email_type: string
+          recipient_email: string
+          subject?: string | null
+          error_message: string
+          error_details?: any | null
+          context_data?: any | null
+          retry_count?: number
+          last_retry_at?: string | null
+          is_resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolution_notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          email_type?: string
+          recipient_email?: string
+          subject?: string | null
+          error_message?: string
+          error_details?: any | null
+          context_data?: any | null
+          retry_count?: number
+          last_retry_at?: string | null
+          is_resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolution_notes?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
       sales_analytics: {
@@ -828,6 +881,7 @@ export type Service = Tables<'services'>
 export type Appointment = Tables<'appointments'>
 export type Order = Tables<'orders'>
 export type Review = Tables<'reviews'>
+export type FailedEmail = Tables<'failed_emails'>
 
 // View types
 export type DashboardOverview = Database['public']['Views']['dashboard_overview']['Row']
@@ -885,8 +939,10 @@ export const TransactionType = {
 
 export const NotificationType = {
   APPOINTMENT_REMINDER: 'appointment_reminder',
+  APPOINTMENT_CONFIRMATION: 'appointment_confirmation',
   APPOINTMENT_DETAILS_UPDATE: 'appointment_details_update',
   ORDER_UPDATE: 'order_update',
+  ORDER_CONFIRMATION: 'order_confirmation',
   PROMOTION: 'promotion',
   BIRTHDAY: 'birthday',
   SYSTEM: 'system'

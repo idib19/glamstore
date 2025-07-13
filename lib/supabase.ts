@@ -642,6 +642,45 @@ export const appointmentsApi = {
     }
   },
 
+  // Get appointment by ID
+  getById: async (id: string) => {
+    console.log('🔍 [appointmentsApi.getById] Fetching appointment by ID:', id);
+    
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          *,
+          customers (
+            id,
+            first_name,
+            last_name,
+            email,
+            phone
+          ),
+          services (
+            id,
+            name,
+            price,
+            duration_minutes
+          )
+        `)
+        .eq('id', id)
+        .single()
+      
+      if (error) {
+        console.error('❌ [appointmentsApi.getById] Error fetching appointment:', error);
+        throw error;
+      }
+      
+      console.log('✅ [appointmentsApi.getById] Appointment fetched successfully:', data?.id);
+      return data
+    } catch (error) {
+      console.error('❌ [appointmentsApi.getById] Unexpected error:', error);
+      throw error;
+    }
+  },
+
   // Create new appointment
   create: async (appointment: Database['public']['Tables']['appointments']['Insert']) => {
     console.log('🔍 [appointmentsApi.create] Creating new appointment:', {
@@ -753,22 +792,22 @@ export const appointmentsApi = {
     }
   },
 
-  // Delete appointment (soft delete by updating status)
+  // Delete appointment (hard delete from database)
   delete: async (id: string) => {
-    console.log('🔍 [appointmentsApi.delete] Cancelling appointment:', id);
+    console.log('🔍 [appointmentsApi.delete] Deleting appointment:', id);
     
     try {
       const { error } = await supabase
         .from('appointments')
-        .update({ status: 'cancelled' })
+        .delete()
         .eq('id', id)
       
       if (error) {
-        console.error('❌ [appointmentsApi.delete] Error cancelling appointment:', error);
+        console.error('❌ [appointmentsApi.delete] Error deleting appointment:', error);
         throw error;
       }
       
-      console.log('✅ [appointmentsApi.delete] Appointment cancelled successfully');
+      console.log('✅ [appointmentsApi.delete] Appointment deleted successfully');
     } catch (error) {
       console.error('❌ [appointmentsApi.delete] Unexpected error:', error);
       throw error;
@@ -933,6 +972,25 @@ export const customersApi = {
     return data
   },
 
+  // Get customer by email
+  getByEmail: async (email: string) => {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('email', email)
+      .eq('is_active', true)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned - customer not found
+        return null
+      }
+      throw error
+    }
+    return data
+  },
+
   // Create new customer
   create: async (customer: Database['public']['Tables']['customers']['Insert']) => {
     const { data, error } = await supabase
@@ -1001,6 +1059,74 @@ export const dashboardApi = {
     
     if (error) throw error
     return data
+  }
+}
+
+// Failed Emails
+export const failedEmailsApi = {
+  // Get all failed emails
+  getAll: async () => {
+    const { data, error } = await supabase
+      .from('failed_emails')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    return data
+  },
+
+  // Get unresolved failed emails
+  getUnresolved: async () => {
+    const { data, error } = await supabase
+      .from('failed_emails')
+      .select('*')
+      .eq('is_resolved', false)
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    return data
+  },
+
+  // Mark as resolved
+  markAsResolved: async (id: string, resolvedBy: string, resolutionNotes?: string) => {
+    const { data, error } = await supabase
+      .from('failed_emails')
+      .update({
+        is_resolved: true,
+        resolved_at: new Date().toISOString(),
+        resolved_by: resolvedBy,
+        resolution_notes: resolutionNotes
+      })
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Get statistics
+  getStatistics: async () => {
+    const { data, error } = await supabase
+      .from('failed_emails')
+      .select('*')
+    
+    if (error) throw error
+    
+    const total = data.length
+    const unresolved = data.filter(email => !email.is_resolved).length
+    
+    // Count by type
+    const typeCounts = data.reduce((acc, email) => {
+      acc[email.email_type] = (acc[email.email_type] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+    
+    return {
+      total,
+      unresolved,
+      byType: Object.entries(typeCounts).map(([type, count]) => ({ email_type: type, count: count as number }))
+    }
   }
 }
 

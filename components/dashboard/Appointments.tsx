@@ -25,11 +25,13 @@ type Appointment = Database['public']['Tables']['appointments']['Row'] & {
 interface AppointmentsProps {
   onAddAppointment: () => void;
   onEditAppointment: (appointment: Appointment) => void;
+  refreshTrigger?: number;
 }
 
-export default function Appointments({ onAddAppointment, onEditAppointment }: AppointmentsProps) {
+export default function Appointments({ onAddAppointment, onEditAppointment, refreshTrigger = 0 }: AppointmentsProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -52,25 +54,51 @@ export default function Appointments({ onAddAppointment, onEditAppointment }: Ap
 
   useEffect(() => {
     loadAppointments();
-  }, []);
+  }, [refreshTrigger]);
 
   // Appointment actions
-  const handleDeleteAppointment = async (appointmentId: string) => {
+  const handleDeleteAppointment = async (appointment: Appointment) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Annuler le rendez-vous',
-      message: 'Êtes-vous sûr de vouloir annuler ce rendez-vous ?',
+      title: 'Supprimer le rendez-vous',
+      message: `Êtes-vous sûr de vouloir supprimer définitivement le rendez-vous #${appointment.id.slice(0, 8)} ? Cette action est irréversible.`,
       onConfirm: async () => {
+        setIsDeleting(appointment.id);
         try {
-          await appointmentsApi.update(appointmentId, { status: 'cancelled' });
-          loadAppointments();
-          console.log('Appointment cancelled successfully');
+          await appointmentsApi.delete(appointment.id);
+          
+          await loadAppointments();
+          console.log('Appointment deleted successfully');
         } catch (error) {
-          console.error('Error cancelling appointment:', error);
-          alert('Erreur lors de l\'annulation du rendez-vous');
+          console.error('Error deleting appointment:', error);
+          alert('Erreur lors de la suppression du rendez-vous');
+        } finally {
+          setIsDeleting(null);
         }
       }
     });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'scheduled': return 'bg-yellow-100 text-yellow-800';
+      case 'confirmed': return 'bg-green-100 text-green-800';
+      case 'completed': return 'bg-blue-100 text-blue-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'no_show': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'scheduled': return 'Programmé';
+      case 'confirmed': return 'Confirmé';
+      case 'completed': return 'Terminé';
+      case 'cancelled': return 'Annulé';
+      case 'no_show': return 'Absent';
+      default: return status;
+    }
   };
 
   return (
@@ -100,7 +128,7 @@ export default function Appointments({ onAddAppointment, onEditAppointment }: Ap
                 </div>
               ) : (
                 appointments.map((appointment) => (
-                  <div key={appointment.id} className="border border-gray-200 rounded-lg p-4">
+                  <div key={appointment.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h4 className="font-medium text-gray-900">RDV #{appointment.id.slice(0, 8)}</h4>
@@ -119,19 +147,8 @@ export default function Appointments({ onAddAppointment, onEditAppointment }: Ap
                           {new Date(appointment.appointment_date).toLocaleDateString('fr-FR')}
                         </p>
                         <p className="text-sm text-gray-600">{appointment.start_time}</p>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          appointment.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                          appointment.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                          appointment.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                          appointment.status === 'no_show' ? 'bg-gray-100 text-gray-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {appointment.status === 'scheduled' ? 'Programmé' :
-                           appointment.status === 'confirmed' ? 'Confirmé' :
-                           appointment.status === 'completed' ? 'Terminé' :
-                           appointment.status === 'cancelled' ? 'Annulé' :
-                           appointment.status === 'no_show' ? 'Absent' :
-                           appointment.status}
+                        <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(appointment.status)}`}>
+                          {getStatusLabel(appointment.status)}
                         </span>
                       </div>
                     </div>
@@ -143,15 +160,18 @@ export default function Appointments({ onAddAppointment, onEditAppointment }: Ap
                         <Edit className="h-4 w-4 mr-1" />
                         Modifier
                       </button>
-                      {appointment.status !== 'cancelled' && (
-                        <button 
-                          onClick={() => handleDeleteAppointment(appointment.id)}
-                          className="btn-secondary text-sm text-red-600 hover:text-red-700"
-                        >
+                      <button 
+                        onClick={() => handleDeleteAppointment(appointment)}
+                        disabled={isDeleting === appointment.id}
+                        className="btn-secondary text-sm text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
+                      >
+                        {isDeleting === appointment.id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1"></div>
+                        ) : (
                           <Trash2 className="h-4 w-4 mr-1" />
-                          Annuler
-                        </button>
-                      )}
+                        )}
+                        Supprimer
+                      </button>
                     </div>
                   </div>
                 ))

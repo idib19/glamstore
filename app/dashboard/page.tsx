@@ -232,18 +232,18 @@ export default function DashboardPage() {
   };
 
   const handleOrderUpdated = () => {
-    loadOrders();
-    console.log('Order updated successfully');
+    setRefreshTrigger(prev => prev + 1);
+    console.log('Order updated successfully - refreshing table');
   };
 
   const handleAppointmentAdded = () => {
-    loadAppointments();
-    console.log('Appointment added successfully');
+    setRefreshTrigger(prev => prev + 1);
+    console.log('Appointment added successfully - refreshing table');
   };
 
   const handleAppointmentUpdated = () => {
-    loadAppointments();
-    console.log('Appointment updated successfully');
+    setRefreshTrigger(prev => prev + 1);
+    console.log('Appointment updated successfully - refreshing table');
   };
 
   // Service actions
@@ -369,6 +369,7 @@ export default function DashboardPage() {
             {activeTab === 'orders' && (
               <Orders 
                 onEditOrder={handleEditOrder}
+                refreshTrigger={refreshTrigger}
               />
             )}
 
@@ -376,6 +377,7 @@ export default function DashboardPage() {
               <Appointments 
                 onAddAppointment={() => setIsAddAppointmentModalOpen(true)}
                 onEditAppointment={handleEditAppointment}
+                refreshTrigger={refreshTrigger}
               />
             )}
 

@@ -55,7 +55,7 @@ export default function ContactPage() {
     {
       name: 'TikTok',
       handle: '@queensglam06',
-      link: 'https://tiktok.com/@queensglam06',
+      link: 'https://www.tiktok.com/@queensglam066',
       icon: <TikTokIcon className="h-12 w-12 text-black" />
     },
     {
@@ -67,7 +67,7 @@ export default function ContactPage() {
     {
       name: 'Facebook',
       handle: 'Queen&apos;s Glam',
-      link: 'https://facebook.com/queensglam',
+      link: 'https://www.facebook.com/profile.php?id=61561036134049',
       icon: <FacebookIcon className="h-12 w-12 text-blue-600" />
     }
   ];

@@ -2,8 +2,57 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Edit, Eye, X, Calendar, User, Phone, Mail, MapPin, Package, CreditCard, FileText, Image as LucideImage } from 'lucide-react';
+import { Edit, Eye, X, Calendar, User, Phone, Mail, MapPin, Package, CreditCard, FileText, Image as LucideImage, Trash2 } from 'lucide-react';
 import { ordersApi } from '../../lib/supabase';
+
+// Status helper functions
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'pending': return 'bg-yellow-100 text-yellow-800';
+    case 'waiting_for_payment': return 'bg-orange-100 text-orange-800';
+    case 'confirmed': return 'bg-green-100 text-green-800';
+    case 'processing': return 'bg-blue-100 text-blue-800';
+    case 'shipped': return 'bg-purple-100 text-purple-800';
+    case 'delivered': return 'bg-emerald-100 text-emerald-800';
+    case 'cancelled': return 'bg-red-100 text-red-800';
+    case 'refunded': return 'bg-gray-100 text-gray-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+};
+
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case 'pending': return 'En attente';
+    case 'waiting_for_payment': return 'En attente de paiement';
+    case 'confirmed': return 'Confirmée';
+    case 'processing': return 'En traitement';
+    case 'shipped': return 'Expédiée';
+    case 'delivered': return 'Livrée';
+    case 'cancelled': return 'Annulée';
+    case 'refunded': return 'Remboursée';
+    default: return status;
+  }
+};
+
+const getPaymentStatusColor = (status: string) => {
+  switch (status) {
+    case 'pending': return 'bg-yellow-100 text-yellow-800';
+    case 'paid': return 'bg-green-100 text-green-800';
+    case 'failed': return 'bg-red-100 text-red-800';
+    case 'refunded': return 'bg-gray-100 text-gray-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+};
+
+const getPaymentStatusLabel = (status: string) => {
+  switch (status) {
+    case 'pending': return 'En attente';
+    case 'paid': return 'Payé';
+    case 'failed': return 'Échoué';
+    case 'refunded': return 'Remboursé';
+    default: return status;
+  }
+};
 
 interface Order {
   id: string;
@@ -57,6 +106,7 @@ interface Order {
 
 interface OrdersProps {
   onEditOrder: (order: Order) => void;
+  refreshTrigger?: number;
 }
 
 interface OrderDetailsModalProps {
@@ -183,54 +233,6 @@ function ProductImageGallery({ images, productName }: ProductImageGalleryProps) 
 // Order Details Modal Component
 function OrderDetailsModal({ isOpen, onClose, order }: OrderDetailsModalProps) {
   if (!isOpen || !order) return null;
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'waiting_for_payment': return 'bg-orange-100 text-orange-800';
-      case 'confirmed': return 'bg-green-100 text-green-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      case 'shipped': return 'bg-purple-100 text-purple-800';
-      case 'delivered': return 'bg-emerald-100 text-emerald-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      case 'refunded': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'pending': return 'En attente';
-      case 'waiting_for_payment': return 'En attente de paiement';
-      case 'confirmed': return 'Confirmée';
-      case 'processing': return 'En traitement';
-      case 'shipped': return 'Expédiée';
-      case 'delivered': return 'Livrée';
-      case 'cancelled': return 'Annulée';
-      case 'refunded': return 'Remboursée';
-      default: return status;
-    }
-  };
-
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'paid': return 'bg-green-100 text-green-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      case 'refunded': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPaymentStatusLabel = (status: string) => {
-    switch (status) {
-      case 'pending': return 'En attente';
-      case 'paid': return 'Payé';
-      case 'failed': return 'Échoué';
-      case 'refunded': return 'Remboursé';
-      default: return status;
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -488,11 +490,12 @@ function OrderDetailsModal({ isOpen, onClose, order }: OrderDetailsModalProps) {
   );
 }
 
-export default function Orders({ onEditOrder }: OrdersProps) {
+export default function Orders({ onEditOrder, refreshTrigger = 0 }: OrdersProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   // Load orders data
   const loadOrders = async () => {
@@ -509,7 +512,7 @@ export default function Orders({ onEditOrder }: OrdersProps) {
 
   useEffect(() => {
     loadOrders();
-  }, []);
+  }, [refreshTrigger]);
 
   const handleViewOrder = (order: Order) => {
     setSelectedOrder(order);
@@ -519,6 +522,23 @@ export default function Orders({ onEditOrder }: OrdersProps) {
   const closeViewModal = () => {
     setIsViewModalOpen(false);
     setSelectedOrder(null);
+  };
+
+  const handleDeleteOrder = async (order: Order) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer la commande #${order.order_number} ?`)) {
+      return;
+    }
+
+    setIsDeleting(order.id);
+    try {
+      await ordersApi.delete(order.id);
+      await loadOrders(); // Refresh the list
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      alert('Erreur lors de la suppression de la commande');
+    } finally {
+      setIsDeleting(null);
+    }
   };
 
   return (
@@ -557,17 +577,8 @@ export default function Orders({ onEditOrder }: OrdersProps) {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-gray-900">{order.total_amount} CAD</p>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          order.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                          order.status === 'delivered' ? 'bg-blue-100 text-blue-800' :
-                          order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {order.status === 'pending' ? 'En attente' :
-                           order.status === 'confirmed' ? 'Confirmée' :
-                           order.status === 'delivered' ? 'Livrée' :
-                           order.status === 'cancelled' ? 'Annulée' :
-                           order.status}
+                        <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(order.status)}`}>
+                          {getStatusLabel(order.status)}
                         </span>
                       </div>
                     </div>
@@ -585,6 +596,18 @@ export default function Orders({ onEditOrder }: OrdersProps) {
                       >
                         <Edit className="h-4 w-4 mr-1" />
                         Modifier
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteOrder(order)}
+                        disabled={isDeleting === order.id}
+                        className="btn-secondary text-sm text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
+                      >
+                        {isDeleting === order.id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1"></div>
+                        ) : (
+                          <Trash2 className="h-4 w-4 mr-1" />
+                        )}
+                        Supprimer
                       </button>
                     </div>
                   </div>

@@ -326,7 +326,7 @@ CREATE TABLE promotions (
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
-    type VARCHAR(50) NOT NULL CHECK (type IN ('appointment_reminder', 'appointment_details_update', 'order_update', 'promotion', 'birthday', 'system')),
+    type VARCHAR(50) NOT NULL CHECK (type IN ('appointment_reminder', 'appointment_confirmation', 'appointment_details_update', 'order_update', 'order_confirmation', 'promotion', 'birthday', 'system')),
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     is_read BOOLEAN DEFAULT false,
