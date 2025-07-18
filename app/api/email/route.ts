@@ -65,6 +65,21 @@ interface AdminAppointmentNotificationData {
   price: number;
 }
 
+interface OrderCancellationData {
+  customerName: string;
+  customerEmail: string;
+  orderNumber: string;
+  orderTotal: number;
+  orderItems: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+    total: number;
+  }>;
+  orderDate: string;
+  cancellationReason?: string;
+}
+
 // Send email using Resend
 const sendEmail = async (emailData: EmailData): Promise<boolean> => {
   try {
@@ -1129,6 +1144,305 @@ const generateAdminAppointmentCancellationHTML = (data: AdminAppointmentNotifica
   `;
 };
 
+const generateOrderCancellationHTML = (data: OrderCancellationData): string => {
+  const formattedDate = new Date(data.orderDate).toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  return `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Annulation de commande - Queen's Glam</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+          line-height: 1.6; 
+          color: #333; 
+          background-color: #f8f9fa;
+        }
+        .container { 
+          max-width: 600px; 
+          margin: 0 auto; 
+          background: white;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header { 
+          background: linear-gradient(135deg, #dc3545, #c82333); 
+          color: white; 
+          padding: 40px 30px; 
+          text-align: center; 
+        }
+        .header h1 { 
+          font-size: 28px; 
+          margin-bottom: 10px;
+          font-weight: 600;
+        }
+        .content { 
+          padding: 40px 30px; 
+        }
+        .order-details { 
+          background: #f8f9fa; 
+          padding: 25px; 
+          border-radius: 10px; 
+          margin: 25px 0; 
+          border-left: 4px solid #dc3545;
+        }
+        .detail-row { 
+          display: flex; 
+          justify-content: space-between; 
+          margin: 12px 0; 
+          padding: 8px 0;
+          border-bottom: 1px solid #e9ecef;
+        }
+        .detail-label { 
+          font-weight: 600; 
+          color: #495057;
+        }
+        .detail-value { 
+          color: #2c3e50;
+        }
+        .items-list {
+          margin: 20px 0;
+        }
+        .item {
+          display: flex;
+          justify-content: space-between;
+          padding: 10px 0;
+          border-bottom: 1px solid #e9ecef;
+        }
+        .item:last-child {
+          border-bottom: none;
+        }
+        .cancellation-note {
+          background: #fff3cd;
+          border: 1px solid #ffeaa7;
+          border-radius: 8px;
+          padding: 15px;
+          margin: 20px 0;
+          color: #856404;
+        }
+        .footer {
+          background: #f8f9fa;
+          padding: 20px 30px;
+          text-align: center;
+          color: #6c757d;
+          font-size: 14px;
+        }
+        .contact-info {
+          background: #e9ecef;
+          padding: 15px;
+          border-radius: 8px;
+          margin: 20px 0;
+          text-align: center;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Annulation de Commande</h1>
+          <p>Queen's Glam</p>
+        </div>
+        <div class="content">
+          <p>Bonjour ${data.customerName},</p>
+          <p>Nous vous informons que votre commande a été annulée par notre équipe administrative.</p>
+          
+          <div class="order-details">
+            <div class="detail-row">
+              <span class="detail-label">Numéro de commande :</span>
+              <span class="detail-value">${data.orderNumber}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Date de commande :</span>
+              <span class="detail-value">${formattedDate}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Montant total :</span>
+              <span class="detail-value">${data.orderTotal} CAD</span>
+            </div>
+          </div>
+
+          <h3>Articles commandés :</h3>
+          <div class="items-list">
+            ${data.orderItems.map(item => `
+              <div class="item">
+                <span>${item.name} (x${item.quantity})</span>
+                <span>${item.total} CAD</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="cancellation-note">
+            <strong>Note :</strong> Cette annulation a été effectuée par notre équipe administrative. 
+            Si vous avez des questions concernant cette annulation, n'hésitez pas à nous contacter.
+          </div>
+
+          <div class="contact-info">
+            <p><strong>Besoin d'aide ?</strong></p>
+            <p>Contactez-nous : admin@queensglam.ca</p>
+            <p>Téléphone : +1 819 639-6386</p>
+          </div>
+          
+          <p>Nous vous remercions de votre compréhension.</p>
+        </div>
+        <div class="footer">
+          <p>Queen's Glam - Votre beauté, notre passion</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+const generateAdminOrderCancellationHTML = (data: OrderCancellationData): string => {
+  const formattedDate = new Date(data.orderDate).toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  return `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Annulation de commande - Notification Admin</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+          line-height: 1.6; 
+          color: #333; 
+          background-color: #f8f9fa;
+        }
+        .container { 
+          max-width: 600px; 
+          margin: 0 auto; 
+          background: white;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header { 
+          background: linear-gradient(135deg, #dc3545, #c82333); 
+          color: white; 
+          padding: 40px 30px; 
+          text-align: center; 
+        }
+        .header h1 { 
+          font-size: 28px; 
+          margin-bottom: 10px;
+          font-weight: 600;
+        }
+        .content { 
+          padding: 40px 30px; 
+        }
+        .order-details { 
+          background: #f8f9fa; 
+          padding: 25px; 
+          border-radius: 10px; 
+          margin: 25px 0; 
+          border-left: 4px solid #dc3545;
+        }
+        .detail-row { 
+          display: flex; 
+          justify-content: space-between; 
+          margin: 12px 0; 
+          padding: 8px 0;
+          border-bottom: 1px solid #e9ecef;
+        }
+        .detail-label { 
+          font-weight: 600; 
+          color: #495057;
+        }
+        .detail-value { 
+          color: #2c3e50;
+        }
+        .items-list {
+          margin: 20px 0;
+        }
+        .item {
+          display: flex;
+          justify-content: space-between;
+          padding: 10px 0;
+          border-bottom: 1px solid #e9ecef;
+        }
+        .item:last-child {
+          border-bottom: none;
+        }
+        .footer {
+          background: #f8f9fa;
+          padding: 20px 30px;
+          text-align: center;
+          color: #6c757d;
+          font-size: 14px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Annulation de Commande</h1>
+          <p>Notification Administrative</p>
+        </div>
+        <div class="content">
+          <p>Une commande a été annulée par l'administrateur :</p>
+          
+          <div class="order-details">
+            <div class="detail-row">
+              <span class="detail-label">Numéro de commande :</span>
+              <span class="detail-value">${data.orderNumber}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Client :</span>
+              <span class="detail-value">${data.customerName}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Email :</span>
+              <span class="detail-value">${data.customerEmail}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Date de commande :</span>
+              <span class="detail-value">${formattedDate}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Montant total :</span>
+              <span class="detail-value">${data.orderTotal} CAD</span>
+            </div>
+          </div>
+
+          <h3>Articles commandés :</h3>
+          <div class="items-list">
+            ${data.orderItems.map(item => `
+              <div class="item">
+                <span>${item.name} (x${item.quantity})</span>
+                <span>${item.total} CAD</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <p><strong>Note :</strong> Un email d'annulation a été envoyé au client.</p>
+        </div>
+        <div class="footer">
+          <p>Queen's Glam - Système de notification</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
 // API route handler
 export async function POST(request: NextRequest) {
   try {
@@ -1234,6 +1548,28 @@ export async function POST(request: NextRequest) {
             subject: `Nouvelle commande #${data.orderNumber} - Queen's Glam`,
             html: generateAdminOrderNotificationHTML(data),
             text: `Nouvelle commande #${data.orderNumber} de ${data.customerName}`
+          };
+          await sendEmail(adminEmailData);
+        }
+        break;
+
+      case 'order_cancellation':
+        // Send to customer
+        emailData = {
+          to: data.customerEmail,
+          subject: 'Annulation de votre commande - Queen\'s Glam',
+          html: generateOrderCancellationHTML(data),
+          text: `Annulation de commande #${data.orderNumber} - Total: ${data.orderTotal} CAD`
+        };
+        success = await sendEmail(emailData);
+        
+        // Also send to admin
+        if (adminEmail) {
+          const adminEmailData: EmailData = {
+            to: adminEmail,
+            subject: `Annulation de commande #${data.orderNumber} - Queen's Glam`,
+            html: generateAdminOrderCancellationHTML(data),
+            text: `Annulation de commande #${data.orderNumber} de ${data.customerName}`
           };
           await sendEmail(adminEmailData);
         }

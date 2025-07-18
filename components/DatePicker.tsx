@@ -8,6 +8,7 @@ interface DatePickerProps {
   onChange: (date: string) => void;
   minDate?: string;
   maxDate?: string;
+  availableDays?: string[]; // Array of available days (monday, tuesday, etc.)
   placeholder?: string;
   className?: string;
   disabled?: boolean;
@@ -18,6 +19,7 @@ export default function DatePicker({
   onChange,
   minDate,
   maxDate,
+  availableDays,
   placeholder = "Sélectionner une date",
   className = "",
   disabled = false
@@ -121,6 +123,12 @@ export default function DatePicker({
     
     // Check max date
     if (maxDate && date > new Date(maxDate)) return true;
+    
+    // Check if the day is available (if availableDays is provided)
+    if (availableDays && availableDays.length > 0) {
+      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      if (!availableDays.includes(dayOfWeek)) return true;
+    }
     
     return false;
   };

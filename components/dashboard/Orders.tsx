@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Edit, Eye, X, Calendar, User, Phone, Mail, MapPin, Package, CreditCard, FileText, Image as LucideImage, Trash2 } from 'lucide-react';
 import { ordersApi } from '../../lib/supabase';
+import { emailService } from '../../lib/emailService';
+import ConfirmDialog from '../ConfirmDialog';
 
 // Status helper functions
 const getStatusColor = (status: string) => {
@@ -496,13 +498,21 @@ export default function Orders({ onEditOrder, refreshTrigger = 0 }: OrdersProps)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
 
   // Load orders data
   const loadOrders = async () => {
     try {
       setIsLoading(true);
       const data = await ordersApi.getAll();
-      setOrders(data);
+      // Filter out cancelled orders since they're "deleted"
+      const activeOrders = data.filter(order => order.status !== 'cancelled');
+      setOrders(activeOrders);
     } catch (error) {
       console.error('Error loading orders:', error);
     } finally {
@@ -525,20 +535,54 @@ export default function Orders({ onEditOrder, refreshTrigger = 0 }: OrdersProps)
   };
 
   const handleDeleteOrder = async (order: Order) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer la commande #${order.order_number} ?`)) {
-      return;
-    }
-
-    setIsDeleting(order.id);
-    try {
-      await ordersApi.delete(order.id);
-      await loadOrders(); // Refresh the list
-    } catch (error) {
-      console.error('Error deleting order:', error);
-      alert('Erreur lors de la suppression de la commande');
-    } finally {
-      setIsDeleting(null);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Supprimer la commande',
+      message: `Êtes-vous sûr de vouloir supprimer la commande #${order.order_number} ? Cette action annulera définitivement la commande et le client sera notifié par email de l'annulation de sa commande par l'administrateur.`,
+      onConfirm: async () => {
+        setIsDeleting(order.id);
+        try {
+          // Cancel the order in the database
+          await ordersApi.delete(order.id);
+          
+          // Send cancellation email to customer
+          const customerName = order.customers ? 
+            `${order.customers.first_name} ${order.customers.last_name}` : 
+            order.customer_name || 'Client';
+          
+          const customerEmail = order.customers?.email || order.customer_email;
+          
+          if (customerEmail) {
+            const orderItems = order.order_items?.map(item => ({
+              name: item.product_name,
+              quantity: item.quantity,
+              price: item.unit_price,
+              total: item.total_price
+            })) || [];
+            
+            await emailService.sendOrderCancellation({
+              customerName,
+              customerEmail,
+              orderNumber: order.order_number,
+              orderTotal: order.total_amount,
+              orderItems,
+              orderDate: order.created_at,
+              cancellationReason: 'Annulation administrative'
+            });
+            
+            console.log('Order cancellation email sent successfully');
+          }
+          
+          await loadOrders(); // Refresh the list
+          console.log('Order deleted successfully');
+        } catch (error) {
+          console.error('Error deleting order:', error);
+          alert('Erreur lors de la suppression de la commande');
+        } finally {
+          setIsDeleting(null);
+        }
+      }
+    });
   };
 
   return (
@@ -623,6 +667,18 @@ export default function Orders({ onEditOrder, refreshTrigger = 0 }: OrdersProps)
         isOpen={isViewModalOpen}
         onClose={closeViewModal}
         order={selectedOrder}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
       />
     </>
   );

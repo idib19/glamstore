@@ -745,8 +745,39 @@ export const appointmentsApi = {
     });
     
     try {
+      // First check if the date is within working days and availability settings
+      const { data: storeData } = await supabase
+        .from('store_data')
+        .select('availability_settings')
+        .eq('is_active', true)
+        .single();
+      
+      if (storeData?.availability_settings) {
+        const settings = storeData.availability_settings;
+        const selectedDate = new Date(date);
+        const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+        
+        // Check if the day is a working day
+        if (!settings.working_days?.includes(dayOfWeek)) {
+          console.log('❌ [appointmentsApi.checkAvailability] Day is not a working day:', dayOfWeek);
+          return false;
+        }
+        
+        // Check if the date is within availability range
+        if (settings.available_from && selectedDate < new Date(settings.available_from)) {
+          console.log('❌ [appointmentsApi.checkAvailability] Date is before availability start');
+          return false;
+        }
+        
+        if (settings.available_until && selectedDate > new Date(settings.available_until)) {
+          console.log('❌ [appointmentsApi.checkAvailability] Date is after availability end');
+          return false;
+        }
+      }
+      
+      // Use the enhanced availability function that checks time slots
       const { data, error } = await supabase
-        .rpc('check_appointment_availability', {
+        .rpc('check_appointment_availability_enhanced', {
           p_appointment_date: date,
           p_start_time: startTime,
           p_duration_minutes: durationMinutes
@@ -754,10 +785,23 @@ export const appointmentsApi = {
       
       if (error) {
         console.error('❌ [appointmentsApi.checkAvailability] Error checking availability:', error);
-        throw error;
+        // Fallback to the original function if enhanced function doesn't exist
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .rpc('check_appointment_availability', {
+            p_appointment_date: date,
+            p_start_time: startTime,
+            p_duration_minutes: durationMinutes
+          })
+        
+        if (fallbackError) {
+          throw fallbackError;
+        }
+        
+        console.log('✅ [appointmentsApi.checkAvailability] Fallback availability result:', fallbackData);
+        return fallbackData;
       }
       
-      console.log('✅ [appointmentsApi.checkAvailability] Availability result:', data);
+      console.log('✅ [appointmentsApi.checkAvailability] Enhanced availability result:', data);
       return data
     } catch (error) {
       console.error('❌ [appointmentsApi.checkAvailability] Unexpected error:', error);
@@ -937,12 +981,66 @@ export const ordersApi = {
 
   // Delete order (soft delete by updating status)
   delete: async (id: string) => {
-    const { error } = await supabase
-      .from('orders')
-      .update({ status: 'cancelled' })
-      .eq('id', id)
+    console.log('🔍 [ordersApi.delete] Cancelling order:', id);
     
-    if (error) throw error
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .update({ 
+          status: 'cancelled',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('❌ [ordersApi.delete] Error cancelling order:', error);
+        throw error;
+      }
+      
+      console.log('✅ [ordersApi.delete] Order cancelled successfully:', data);
+      return data;
+    } catch (error) {
+      console.error('❌ [ordersApi.delete] Unexpected error:', error);
+      throw error;
+    }
+  },
+
+  // Hard delete order (completely remove from database)
+  hardDelete: async (id: string) => {
+    console.log('🔍 [ordersApi.hardDelete] Hard deleting order:', id);
+    
+    try {
+      // First delete all order items (due to foreign key constraints)
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .delete()
+        .eq('order_id', id)
+      
+      if (itemsError) {
+        console.error('❌ [ordersApi.hardDelete] Error deleting order items:', itemsError);
+        throw itemsError;
+      }
+      
+      console.log('✅ [ordersApi.hardDelete] Order items deleted successfully');
+      
+      // Then delete the order itself
+      const { error: orderError } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', id)
+      
+      if (orderError) {
+        console.error('❌ [ordersApi.hardDelete] Error deleting order:', orderError);
+        throw orderError;
+      }
+      
+      console.log('✅ [ordersApi.hardDelete] Order hard deleted successfully');
+    } catch (error) {
+      console.error('❌ [ordersApi.hardDelete] Unexpected error:', error);
+      throw error;
+    }
   }
 }
 
@@ -1203,6 +1301,167 @@ export const reviewsApi = {
       .from('reviews')
       .update(updates)
       .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+}
+
+// Time Slots
+export const timeSlotsApi = {
+  // Get all time slots
+  getAll: async () => {
+    const { data, error } = await supabase
+      .from('time_slots')
+      .select('*')
+      .order('day_of_week', { ascending: true })
+      .order('start_time', { ascending: true })
+    
+    if (error) throw error
+    return data
+  },
+
+  // Get time slots by day
+  getByDay: async (dayOfWeek: string) => {
+    const { data, error } = await supabase
+      .from('time_slots')
+      .select('*')
+      .eq('day_of_week', dayOfWeek)
+      .order('start_time', { ascending: true })
+    
+    if (error) throw error
+    return data
+  },
+
+  // Get available time slots for a specific day
+  getAvailableSlots: async (dayOfWeek: string) => {
+    const { data, error } = await supabase
+      .from('time_slots')
+      .select('*')
+      .eq('day_of_week', dayOfWeek)
+      .eq('is_available', true)
+      .eq('slot_type', 'regular')
+      .order('start_time', { ascending: true })
+    
+    if (error) throw error
+    return data
+  },
+
+  // Create new time slot
+  create: async (timeSlot: Database['public']['Tables']['time_slots']['Insert']) => {
+    const { data, error } = await supabase
+      .from('time_slots')
+      .insert(timeSlot)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Update time slot
+  update: async (id: string, updates: Database['public']['Tables']['time_slots']['Update']) => {
+    const { data, error } = await supabase
+      .from('time_slots')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Delete time slot
+  delete: async (id: string) => {
+    const { error } = await supabase
+      .from('time_slots')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+  },
+
+  // Bulk create time slots for a day
+  bulkCreate: async (dayOfWeek: string, slots: Array<{
+    start_time: string
+    end_time: string
+    is_available: boolean
+    slot_type: 'regular' | 'break' | 'maintenance' | 'lunch' | 'cleaning'
+    notes?: string
+  }>) => {
+    // First delete existing slots for this day
+    await supabase
+      .from('time_slots')
+      .delete()
+      .eq('day_of_week', dayOfWeek)
+    
+    // Then create new slots
+    const timeSlots = slots.map(slot => ({
+      day_of_week: dayOfWeek,
+      ...slot
+    }))
+    
+    const { data, error } = await supabase
+      .from('time_slots')
+      .insert(timeSlots)
+      .select()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Get time slots organized by day
+  getByDayOrganized: async () => {
+    const { data, error } = await supabase
+      .from('time_slots')
+      .select('*')
+      .order('day_of_week', { ascending: true })
+      .order('start_time', { ascending: true })
+    
+    if (error) throw error
+    
+    // Organize by day
+    const organized = data.reduce((acc, slot) => {
+      if (!acc[slot.day_of_week]) {
+        acc[slot.day_of_week] = []
+      }
+      acc[slot.day_of_week].push(slot)
+      return acc
+    }, {} as Record<string, typeof data>)
+    
+    return organized
+  },
+
+  // Get available days (days that have open slots)
+  getAvailableDays: async () => {
+    const { data, error } = await supabase
+      .from('time_slots')
+      .select('day_of_week')
+      .eq('is_available', true)
+      .eq('slot_type', 'regular')
+    
+    if (error) throw error
+    
+    // Get unique days that have available slots
+    const availableDays = [...new Set(data.map(slot => slot.day_of_week))]
+    return availableDays
+  },
+
+  // Save schedule date range to store_data
+  saveScheduleDateRange: async (effectiveFrom: string, effectiveUntil: string) => {
+    const { data, error } = await supabase
+      .from('store_data')
+      .upsert({
+        is_active: true,
+        availability_settings: {
+          available_from: effectiveFrom,
+          available_until: effectiveUntil,
+          working_days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] // All days are handled by time slots now
+        }
+      })
       .select()
       .single()
     

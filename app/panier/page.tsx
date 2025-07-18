@@ -186,7 +186,6 @@ export default function CartPage() {
                 <div className="text-left space-y-2 text-sm">
                   <p><strong>Numéro de commande :</strong> {orderDetails.order_number}</p>
                   <p><strong>Total :</strong> {orderDetails.total_amount.toFixed(2)} CAD</p>
-                  <p><strong>Articles :</strong> {getCartItemCount()}</p>
                   <p><strong>Email :</strong> {checkoutData.email}</p>
                 </div>
               </div>

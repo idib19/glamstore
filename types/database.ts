@@ -125,6 +125,41 @@ export interface Database {
           updated_at?: string
         }
       }
+      time_slots: {
+        Row: {
+          id: string
+          day_of_week: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
+          start_time: string
+          end_time: string
+          is_available: boolean
+          slot_type: 'regular' | 'break' | 'maintenance' | 'lunch' | 'cleaning'
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          day_of_week: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
+          start_time: string
+          end_time: string
+          is_available?: boolean
+          slot_type?: 'regular' | 'break' | 'maintenance' | 'lunch' | 'cleaning'
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          day_of_week?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
+          start_time?: string
+          end_time?: string
+          is_available?: boolean
+          slot_type?: 'regular' | 'break' | 'maintenance' | 'lunch' | 'cleaning'
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
       customers: {
         Row: {
           id: string
@@ -875,6 +910,7 @@ export type Updates<T extends keyof Database['public']['Tables']> = Database['pu
 // Specific table types
 export type User = Tables<'users'>
 export type StoreData = Tables<'store_data'>
+export type TimeSlot = Tables<'time_slots'>
 export type Customer = Tables<'customers'>
 export type Product = Tables<'products'>
 export type Service = Tables<'services'>

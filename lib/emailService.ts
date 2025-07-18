@@ -26,6 +26,21 @@ interface OrderEmailData {
   shippingAddress: string;
 }
 
+interface OrderCancellationData {
+  customerName: string;
+  customerEmail: string;
+  orderNumber: string;
+  orderTotal: number;
+  orderItems: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+    total: number;
+  }>;
+  orderDate: string;
+  cancellationReason?: string;
+}
+
 interface AdminOrderNotificationData {
   orderNumber: string;
   customerName: string;
@@ -54,7 +69,7 @@ interface AdminAppointmentNotificationData {
   price: number;
 }
 
-type EmailData = AppointmentEmailData | OrderEmailData | AdminOrderNotificationData | AdminAppointmentNotificationData;
+type EmailData = AppointmentEmailData | OrderEmailData | OrderCancellationData | AdminOrderNotificationData | AdminAppointmentNotificationData;
 
 // Send email via API route
 const sendEmailViaAPI = async (type: string, data: EmailData): Promise<boolean> => {
@@ -100,6 +115,11 @@ export const emailService = {
   // Send order confirmation email (also sends to admin)
   sendOrderConfirmation: async (data: OrderEmailData) => {
     return await sendEmailViaAPI('order_confirmation', data);
+  },
+
+  // Send order cancellation email (also sends to admin)
+  sendOrderCancellation: async (data: OrderCancellationData) => {
+    return await sendEmailViaAPI('order_cancellation', data);
   },
 
   // Legacy admin-only notifications (for backward compatibility)

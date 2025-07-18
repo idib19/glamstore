@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Navigation from '../../components/Navigation';
 import Footer from '../../components/Footer';
-import { servicesApi, appointmentsApi, customersApi } from '../../lib/supabase';
+import { servicesApi, appointmentsApi, customersApi, timeSlotsApi } from '../../lib/supabase';
 import { emailService } from '../../lib/emailService';
 import { notificationService } from '../../lib/notificationService';
 import { Calendar, Clock, User, CheckCircle, AlertCircle } from 'lucide-react';
@@ -33,6 +33,7 @@ export default function RendezVousPage() {
   const [bookingStep, setBookingStep] = useState(1);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingError, setBookingError] = useState('');
+  const [availableDays, setAvailableDays] = useState<string[]>([]);
 
   // Customer form state
   const [customerForm, setCustomerForm] = useState({
@@ -51,6 +52,7 @@ export default function RendezVousPage() {
 
   useEffect(() => {
     loadServices();
+    loadAvailableDays();
   }, []);
 
   const loadAvailableSlots = useCallback(async () => {
@@ -98,6 +100,17 @@ export default function RendezVousPage() {
       setBookingError('Erreur lors du chargement des services');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadAvailableDays = async () => {
+    try {
+      const data = await timeSlotsApi.getAvailableDays();
+      setAvailableDays(data);
+    } catch (error) {
+      console.error('Error loading available days:', error);
+      // If there's an error, allow all days (fallback)
+      setAvailableDays(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
     }
   };
 
@@ -419,6 +432,7 @@ export default function RendezVousPage() {
                     onChange={handleDateSelection}
                     minDate={getMinDate()}
                     maxDate={getMaxDate()}
+                    availableDays={availableDays}
                     placeholder="Choisissez une date pour votre rendez-vous"
                   />
                 </div>

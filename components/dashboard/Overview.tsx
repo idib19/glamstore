@@ -6,7 +6,8 @@ import {
   Calendar, 
   Settings, 
   Star, 
-  TrendingUp
+  TrendingUp,
+  Trash2
 } from 'lucide-react';
 import { servicesApi, ordersApi, appointmentsApi, reviewsApi } from '../../lib/supabase';
 import { 
@@ -15,6 +16,7 @@ import {
   calculateServiceMetrics, 
   calculateReviewMetrics 
 } from '../../lib/utils';
+import ConfirmDialog from '../ConfirmDialog';
 
 interface Order {
   id: string;
@@ -82,54 +84,83 @@ export default function Overview() {
   const [services, setServices] = useState<Service[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
 
   // Load all data for overview
-  useEffect(() => {
-    const loadOverviewData = async () => {
-      console.log('🔍 [Overview] Starting to load overview data...');
+  const loadOverviewData = async () => {
+    console.log('🔍 [Overview] Starting to load overview data...');
+    
+    try {
+      setIsLoading(true);
       
-      try {
-        setIsLoading(true);
-        
-        console.log('🔍 [Overview] Calling APIs in parallel...');
-        const [ordersData, appointmentsData, servicesData, reviewsData] = await Promise.all([
-          ordersApi.getAll(),
-          appointmentsApi.getAll(),
-          servicesApi.getAll(),
-          reviewsApi.getAllForAdmin()
-        ]);
-        
-        console.log('🔍 [Overview] All APIs completed:', {
-          orders: ordersData?.length || 0,
-          appointments: appointmentsData?.length || 0,
-          services: servicesData?.length || 0,
-          reviews: reviewsData?.length || 0
-        });
-        
-        console.log('🔍 [Overview] Appointments data sample:', appointmentsData?.slice(0, 2).map(apt => ({
-          id: apt.id,
-          date: apt.appointment_date,
-          customer: apt.customers ? `${apt.customers.first_name} ${apt.customers.last_name}` : 'No customer',
-          service: apt.services?.name || 'No service',
-          status: apt.status
-        })));
-        
-        setOrders(ordersData);
-        setAppointments(appointmentsData);
-        setServices(servicesData);
-        setReviews(reviewsData);
-        
-        console.log('✅ [Overview] Overview data loaded successfully');
-      } catch (error) {
-        console.error('❌ [Overview] Error loading overview data:', error);
-      } finally {
-        setIsLoading(false);
-        console.log('🔍 [Overview] Overview loading completed');
-      }
-    };
+      console.log('🔍 [Overview] Calling APIs in parallel...');
+      const [ordersData, appointmentsData, servicesData, reviewsData] = await Promise.all([
+        ordersApi.getAll(),
+        appointmentsApi.getAll(),
+        servicesApi.getAll(),
+        reviewsApi.getAllForAdmin()
+      ]);
+      
+      console.log('🔍 [Overview] All APIs completed:', {
+        orders: ordersData?.length || 0,
+        appointments: appointmentsData?.length || 0,
+        services: servicesData?.length || 0,
+        reviews: reviewsData?.length || 0
+      });
+      
+      console.log('🔍 [Overview] Appointments data sample:', appointmentsData?.slice(0, 2).map(apt => ({
+        id: apt.id,
+        date: apt.appointment_date,
+        customer: apt.customers ? `${apt.customers.first_name} ${apt.customers.last_name}` : 'No customer',
+        service: apt.services?.name || 'No service',
+        status: apt.status
+      })));
+      
+      setOrders(ordersData);
+      setAppointments(appointmentsData);
+      setServices(servicesData);
+      setReviews(reviewsData);
+      
+      console.log('✅ [Overview] Overview data loaded successfully');
+    } catch (error) {
+      console.error('❌ [Overview] Error loading overview data:', error);
+    } finally {
+      setIsLoading(false);
+      console.log('🔍 [Overview] Overview loading completed');
+    }
+  };
 
+  useEffect(() => {
     loadOverviewData();
   }, []);
+
+  // Handle order deletion
+  const handleDeleteOrder = async (order: Order) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Supprimer définitivement la commande',
+      message: `Êtes-vous sûr de vouloir supprimer définitivement la commande #${order.id.slice(0, 8)} ? Cette action supprimera complètement la commande de la base de données et ne peut pas être annulée.`,
+      onConfirm: async () => {
+        setIsDeleting(order.id);
+        try {
+          await ordersApi.hardDelete(order.id);
+          await loadOverviewData(); // Refresh the data
+          console.log('Order hard deleted successfully');
+        } catch (error) {
+          console.error('Error hard deleting order:', error);
+          alert('Erreur lors de la suppression définitive de la commande');
+        } finally {
+          setIsDeleting(null);
+        }
+      }
+    });
+  };
 
   // Calculate monthly metrics using utility functions
   const ordersMetrics = calculateMonthlyMetrics(orders);
@@ -184,7 +215,8 @@ export default function Overview() {
         date: new Date(order.created_at).toLocaleDateString('fr-FR', {
           day: 'numeric',
           month: 'short'
-        })
+        }),
+        order: order // Keep reference to original order for deletion
       }));
   };
 
@@ -295,20 +327,34 @@ export default function Overview() {
                       <p className="text-sm text-gray-600">{order.date}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">{order.total} CAD</p>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      order.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                      order.status === 'delivered' ? 'bg-blue-100 text-blue-800' :
-                      order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {order.status === 'pending' ? 'En attente' :
-                       order.status === 'confirmed' ? 'Confirmée' :
-                       order.status === 'delivered' ? 'Livrée' :
-                       order.status === 'cancelled' ? 'Annulée' :
-                       order.status}
-                    </span>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900">{order.total} CAD</p>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        order.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                        order.status === 'delivered' ? 'bg-blue-100 text-blue-800' :
+                        order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {order.status === 'pending' ? 'En attente' :
+                         order.status === 'confirmed' ? 'Confirmée' :
+                         order.status === 'delivered' ? 'Livrée' :
+                         order.status === 'cancelled' ? 'Annulée' :
+                         order.status}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteOrder(order.order)}
+                      disabled={isDeleting === order.id}
+                      className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                      title="Supprimer définitivement la commande"
+                    >
+                      {isDeleting === order.id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
                 </div>
               ))
@@ -371,6 +417,18 @@ export default function Overview() {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+      />
     </div>
   );
 } 

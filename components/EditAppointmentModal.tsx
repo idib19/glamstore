@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, Save, Loader2 } from 'lucide-react';
-import { appointmentsApi, servicesApi, customersApi } from '../lib/supabase';
+import { X, Save, Loader2, UserPlus } from 'lucide-react';
+import { appointmentsApi, servicesApi, customersApi, timeSlotsApi } from '../lib/supabase';
 import { emailService } from '../lib/emailService';
 import DatePicker from './DatePicker';
 import TimePicker from './TimePicker';
+import AddCustomerModal from './AddCustomerModal';
 
 interface Appointment {
   id: string;
@@ -61,6 +62,8 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
   }>>([]);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [availableDays, setAvailableDays] = useState<string[]>([]);
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [formData, setFormData] = useState({
     customer_id: '',
     service_id: '',
@@ -77,6 +80,7 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
     if (isOpen) {
       loadServices();
       loadCustomers();
+      loadAvailableDays();
       if (appointment) {
         setFormData({
           customer_id: appointment.customer_id,
@@ -107,6 +111,24 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
       setCustomers(data);
     } catch (error) {
       console.error('Error loading customers:', error);
+    }
+  };
+
+  const handleCustomerAdded = (customerId: string) => {
+    // Reload customers to include the new one
+    loadCustomers();
+    // Set the newly created customer as selected
+    setFormData(prev => ({ ...prev, customer_id: customerId }));
+  };
+
+  const loadAvailableDays = async () => {
+    try {
+      const data = await timeSlotsApi.getAvailableDays();
+      setAvailableDays(data);
+    } catch (error) {
+      console.error('Error loading available days:', error);
+      // If there's an error, allow all days (fallback)
+      setAvailableDays(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
     }
   };
 
@@ -351,19 +373,29 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Client
               </label>
-              <select
-                value={formData.customer_id}
-                onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-                required
-              >
-                <option value="">Sélectionner un client</option>
-                {customers.map((customer) => (
-                  <option key={customer.id} value={customer.id}>
-                    {customer.first_name} {customer.last_name}
-                  </option>
-                ))}
-              </select>
+              <div className="flex space-x-2">
+                <select
+                  value={formData.customer_id}
+                  onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-pink focus:border-transparent"
+                  required
+                >
+                  <option value="">Sélectionner un client</option>
+                  {customers.map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.first_name} {customer.last_name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCustomerModal(true)}
+                  className="px-3 py-2 bg-primary-pink text-white rounded-md hover:bg-dark-pink transition-colors flex items-center"
+                  title="Ajouter un nouveau client"
+                >
+                  <UserPlus className="h-4 w-4" />
+                </button>
+              </div>
             </div>
 
             <div>
@@ -401,6 +433,7 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
               <DatePicker
                 value={formData.appointment_date}
                 onChange={(date) => setFormData({ ...formData, appointment_date: date, start_time: '' })}
+                availableDays={availableDays}
                 placeholder="Sélectionner une date"
                 className="w-full"
               />
@@ -516,6 +549,13 @@ export default function EditAppointmentModal({ isOpen, onClose, appointment, onA
           </div>
         </form>
       </div>
+
+      {/* Add Customer Modal */}
+      <AddCustomerModal
+        isOpen={showAddCustomerModal}
+        onClose={() => setShowAddCustomerModal(false)}
+        onCustomerAdded={handleCustomerAdded}
+      />
     </div>
   );
 } 

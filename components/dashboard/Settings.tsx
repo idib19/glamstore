@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { StoreData } from '../../types/database';
+import UnifiedScheduleManager from '../UnifiedScheduleManager';
 import { 
   Save, 
   MapPin, 
@@ -13,10 +14,10 @@ import {
   Twitter, 
   Youtube, 
   Linkedin,
-  Calendar,
   Building,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Clock
 } from 'lucide-react';
 
 interface SettingsProps {
@@ -44,10 +45,7 @@ export default function Settings({ onSettingsUpdated }: SettingsProps) {
     twitter_url: '',
     tiktok_url: '',
     youtube_url: '',
-    linkedin_url: '',
-    availability_from: '',
-    availability_until: '',
-    working_days: [] as string[]
+    linkedin_url: ''
   });
 
   // Load store data
@@ -85,10 +83,7 @@ export default function Settings({ onSettingsUpdated }: SettingsProps) {
           twitter_url: data.twitter_url || '',
           tiktok_url: data.tiktok_url || '',
           youtube_url: data.youtube_url || '',
-          linkedin_url: data.linkedin_url || '',
-          availability_from: data.availability_settings?.available_from || '',
-          availability_until: data.availability_settings?.available_until || '',
-          working_days: data.availability_settings?.working_days || []
+          linkedin_url: data.linkedin_url || ''
         });
       }
     } catch (error) {
@@ -105,26 +100,12 @@ export default function Settings({ onSettingsUpdated }: SettingsProps) {
     }));
   };
 
-  const handleWorkingDayToggle = (day: string) => {
-    setFormData(prev => ({
-      ...prev,
-      working_days: prev.working_days.includes(day)
-        ? prev.working_days.filter(d => d !== day)
-        : [...prev.working_days, day]
-    }));
-  };
+
 
   const handleSave = async () => {
     try {
       setIsSaving(true);
       setMessage(null);
-
-      const availabilitySettings = {
-        available_from: formData.availability_from,
-        available_until: formData.availability_until,
-        working_days: formData.working_days,
-        excluded_dates: storeData?.availability_settings?.excluded_dates || []
-      };
 
       const { error } = await supabase
         .from('store_data')
@@ -143,7 +124,6 @@ export default function Settings({ onSettingsUpdated }: SettingsProps) {
           tiktok_url: formData.tiktok_url,
           youtube_url: formData.youtube_url,
           linkedin_url: formData.linkedin_url,
-          availability_settings: availabilitySettings,
           updated_at: new Date().toISOString()
         })
         .eq('id', storeData?.id);
@@ -165,15 +145,7 @@ export default function Settings({ onSettingsUpdated }: SettingsProps) {
     }
   };
 
-  const workingDaysOptions = [
-    { value: 'monday', label: 'Lundi' },
-    { value: 'tuesday', label: 'Mardi' },
-    { value: 'wednesday', label: 'Mercredi' },
-    { value: 'thursday', label: 'Jeudi' },
-    { value: 'friday', label: 'Vendredi' },
-    { value: 'saturday', label: 'Samedi' },
-    { value: 'sunday', label: 'Dimanche' }
-  ];
+
 
   if (isLoading) {
     return (
@@ -452,57 +424,19 @@ export default function Settings({ onSettingsUpdated }: SettingsProps) {
         </div>
       </div>
 
-      {/* Availability Settings */}
+
+
+      {/* Unified Schedule Management */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <Calendar className="h-5 w-5 mr-2" />
-          Disponibilité pour les rendez-vous
+          <Clock className="h-5 w-5 mr-2" />
+          Configuration des horaires
         </h3>
+        <p className="text-gray-600 mb-6">
+          Définissez vos horaires d&apos;ouverture et la période d&apos;application
+        </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Disponible à partir du
-            </label>
-            <input
-              type="date"
-              value={formData.availability_from}
-              onChange={(e) => handleInputChange('availability_from', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Disponible jusqu&apos;au
-            </label>
-            <input
-              type="date"
-              value={formData.availability_until}
-              onChange={(e) => handleInputChange('availability_until', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-pink focus:border-transparent"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Jours de travail
-          </label>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {workingDaysOptions.map((day) => (
-              <label key={day.value} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.working_days.includes(day.value)}
-                  onChange={() => handleWorkingDayToggle(day.value)}
-                  className="h-4 w-4 text-primary-pink focus:ring-primary-pink border-gray-300 rounded"
-                />
-                <span className="ml-2 text-sm text-gray-700">{day.label}</span>
-              </label>
-            ))}
-          </div>
-        </div>
+        <UnifiedScheduleManager onScheduleUpdated={onSettingsUpdated} />
       </div>
     </div>
   );
